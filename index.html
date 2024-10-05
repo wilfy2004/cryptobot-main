@@ -18,7 +18,7 @@
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('/cryptobot-main/sw.js')
                 .then((reg) => console.log('Service worker registered.', reg))
                 .catch((err) => console.log('Service worker registration failed:', err));
         }
