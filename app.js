@@ -1,4 +1,4 @@
-dconst API_URL = 'https://nodered.wilfy2004.synology.me/api';
+const API_URL = 'https://nodered.wilfy2004.synology.me/api';
 const AUTH_TOKEN = 'Mxiva90gAW09BkLGGER1ik1ri1C3UTcWovISpHYU1hjZH5thjkBU6fJdVirsmpJW';
 
 async function fetchData(endpoint) {
