@@ -1,4 +1,4 @@
-const API_URL = 'https://your-node-red-instance.com/api';
+dconst API_URL = 'https://nodered.wilfy2004.synology.me/api';
 const AUTH_TOKEN = 'your_secret_token';
 
 async function fetchData(endpoint) {
