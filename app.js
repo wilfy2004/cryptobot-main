@@ -15,9 +15,9 @@ async function fetchData(endpoint) {
 
 async function updateDashboard() {
     try {
-        const accountInfo = await fetchData('/account-info');
-        const activeTrade = await fetchData('/active-trade');
-        const recentTrades = await fetchData('/recent-trades');
+        const accountInfo = await fetchData('/api/account-info');
+        const activeTrade = await fetchData('/api/active-trade');
+        const recentTrades = await fetchData('/api/recent-trades');
 
         document.getElementById('account-info').innerHTML = `
             <h2>Account Info</h2>
