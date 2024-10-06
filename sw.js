@@ -1,13 +1,13 @@
 const CACHE_NAME = 'trading-bot-dashboard-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/icon.png',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/manifest.json'
+  '/cryptobot-main/',
+  '/cryptobot-main/index.html',
+  '/cryptobot-main/styles.css',
+  '/cryptobot-main/app.js',
+  '/cryptobot-main/icon.png',
+  '/cryptobot-main/icon-192.png',
+  '/cryptobot-main/icon-512.png',
+  '/cryptobot-main/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
