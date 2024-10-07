@@ -2,6 +2,7 @@ const CACHE_NAME = 'trading-bot-dashboard-v1';
 const urlsToCache = [
   '/cryptobot-main/',
   '/cryptobot-main/index.html',
+  '/cryptobot-main/login.html',
   '/cryptobot-main/styles.css',
   '/cryptobot-main/app.js',
   '/cryptobot-main/icon.png',
