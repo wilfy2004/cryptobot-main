@@ -1,26 +1,27 @@
 const API_URL = 'https://nodered.wilfy2004.synology.me';
+let dashboardInterval;
 
 async function fetchData(endpoint) {
     const token = localStorage.getItem('auth_token');
     if (!token) {
         throw new Error('No authentication token found');
     }
-
+    
     const response = await fetch(`${API_URL}${endpoint}`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
     });
-
+    
     if (!response.ok) {
         if (response.status === 401) {
+            stopDashboardUpdates();
             localStorage.removeItem('auth_token');
-            // Redirect to login page or show login modal
-            window.location.href = 'login.html'; // Adjust this to your login page
+            window.location.href = 'login.html';
         }
         throw new Error(`HTTP error! status: ${response.status}`);
     }
-
+    
     return response.json();
 }
 
@@ -29,21 +30,21 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const activeTrade = await fetchData('/api/active-trade');
         const recentTrades = await fetchData('/api/recent-trades');
-
+        
         document.getElementById('account-info').innerHTML = `
             <h2>Account Info</h2>
             <p>Balance: $${accountInfo.balance}</p>
         `;
-
+        
         document.getElementById('active-trade').innerHTML = activeTrade
             ? `
                 <h2>Active Trade</h2>
                 <p>Symbol: ${activeTrade.symbol}</p>
                 <p>Entry Price: $${activeTrade.entryPrice}</p>
                 <p>Current Price: $${activeTrade.currentPrice}</p>
-              `
+            `
             : '<h2>No Active Trade</h2>';
-
+        
         document.getElementById('recent-trades').innerHTML = `
             <h2>Recent Trades</h2>
             <ul>
@@ -55,18 +56,23 @@ async function updateDashboard() {
     } catch (error) {
         console.error('Error updating dashboard:', error);
         if (error.message.includes('No authentication token found')) {
-            window.location.href = 'login.html'; // Redirect to login page
+            stopDashboardUpdates();
+            window.location.href = 'login.html';
         }
     }
 }
 
-// Update dashboard every 10 seconds
-setInterval(updateDashboard, 10000);
+function startDashboardUpdates() {
+    updateDashboard();
+    dashboardInterval = setInterval(updateDashboard, 10000);
+}
 
-// Initial update
-updateDashboard();
+function stopDashboardUpdates() {
+    if (dashboardInterval) {
+        clearInterval(dashboardInterval);
+    }
+}
 
-// Add these functions for login and logout
 async function login(username, password) {
     try {
         const response = await fetch(`${API_URL}/api/login`, {
@@ -76,14 +82,14 @@ async function login(username, password) {
             },
             body: JSON.stringify({ username, password }),
         });
-
+        
         if (!response.ok) {
             throw new Error('Login failed');
         }
-
+        
         const data = await response.json();
         localStorage.setItem('auth_token', data.token);
-        window.location.href = 'index.html'; // Redirect to main page after login
+        window.location.href = 'index.html';
     } catch (error) {
         console.error('Login error:', error);
         alert('Login failed. Please try again.');
@@ -91,12 +97,23 @@ async function login(username, password) {
 }
 
 function logout() {
+    stopDashboardUpdates();
     localStorage.removeItem('auth_token');
     window.location.href = 'login.html';
 }
 
-// Add event listeners for login and logout buttons if they exist
+function initializeApp() {
+    const token = localStorage.getItem('auth_token');
+    if (token && window.location.pathname.endsWith('index.html')) {
+        startDashboardUpdates();
+    } else if (!token && !window.location.pathname.endsWith('login.html')) {
+        window.location.href = 'login.html';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+    
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
@@ -106,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login(username, password);
         });
     }
-
+    
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', logout);
