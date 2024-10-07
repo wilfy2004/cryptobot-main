@@ -1,5 +1,7 @@
 const API_URL = 'https://nodered.wilfy2004.synology.me';
 let dashboardInterval;
+let logoutTimer;
+const LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 async function fetchData(endpoint) {
     const token = localStorage.getItem('auth_token');
@@ -15,9 +17,7 @@ async function fetchData(endpoint) {
     
     if (!response.ok) {
         if (response.status === 401) {
-            stopDashboardUpdates();
-            localStorage.removeItem('auth_token');
-            window.location.href = 'login.html';
+            handleLogout();
         }
         throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -56,8 +56,7 @@ async function updateDashboard() {
     } catch (error) {
         console.error('Error updating dashboard:', error);
         if (error.message.includes('No authentication token found')) {
-            stopDashboardUpdates();
-            window.location.href = 'login.html';
+            handleLogout();
         }
     }
 }
@@ -71,6 +70,20 @@ function stopDashboardUpdates() {
     if (dashboardInterval) {
         clearInterval(dashboardInterval);
     }
+}
+
+function resetLogoutTimer() {
+    if (logoutTimer) {
+        clearTimeout(logoutTimer);
+    }
+    logoutTimer = setTimeout(handleLogout, LOGOUT_TIME);
+}
+
+function handleLogout() {
+    stopDashboardUpdates();
+    clearTimeout(logoutTimer);
+    localStorage.removeItem('auth_token');
+    window.location.href = 'login.html';
 }
 
 async function login(username, password) {
@@ -89,6 +102,7 @@ async function login(username, password) {
         
         const data = await response.json();
         localStorage.setItem('auth_token', data.token);
+        resetLogoutTimer();
         window.location.href = 'index.html';
     } catch (error) {
         console.error('Login error:', error);
@@ -96,19 +110,21 @@ async function login(username, password) {
     }
 }
 
-function logout() {
-    stopDashboardUpdates();
-    localStorage.removeItem('auth_token');
-    window.location.href = 'login.html';
-}
-
 function initializeApp() {
     const token = localStorage.getItem('auth_token');
     if (token && window.location.pathname.endsWith('index.html')) {
         startDashboardUpdates();
+        resetLogoutTimer();
+        setupActivityListeners();
     } else if (!token && !window.location.pathname.endsWith('login.html')) {
         window.location.href = 'login.html';
     }
+}
+
+function setupActivityListeners() {
+    ['click', 'touchstart', 'mousemove', 'keypress'].forEach(eventType => {
+        document.addEventListener(eventType, resetLogoutTimer);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -126,6 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
-        logoutButton.addEventListener('click', logout);
+        logoutButton.addEventListener('click', handleLogout);
     }
 });
