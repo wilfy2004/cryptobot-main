@@ -20,3 +20,28 @@ h1 {
     border: 1px solid #ddd;
     border-radius: 5px;
 }
+
+/* Add these to your existing styles */
+#login-form {
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  margin: 20px auto;
+}
+
+#login-form input {
+  margin-bottom: 10px;
+  padding: 5px;
+}
+
+#login-form button, #logout-button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#logout-button {
+  margin-top: 20px;
+}
