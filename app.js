@@ -51,13 +51,12 @@ async function updateDashboard() {
                 <thead>
                     <tr>
                         <th>Symbol</th>
+                        <th>Buy Time</th>
                         <th>Buy Price</th>
                         <th>Sell Price</th>
                         <th>Quantity</th>
                         <th>Profit</th>
                         <th>Profit %</th>
-                        <th>Buy Time</th>
-                        <th>Sell Time</th>
                     </tr>
                 </thead>
                 <tbody>
