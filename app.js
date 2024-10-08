@@ -33,7 +33,7 @@ async function updateDashboard() {
         
         document.getElementById('account-info').innerHTML = `
             <h2>Account Info</h2>
-            <p>Balance: $${accountInfo.balance}</p>
+            <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
         `;
         
         document.getElementById('active-trade').innerHTML = activeTrade
@@ -147,7 +147,26 @@ function setupActivityListeners() {
         document.addEventListener(eventType, resetLogoutTimer);
     });
 }
+async function performHardReset() {
+    try {
+        const response = await fetch(`${API_URL}/api/hard-reset`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        });
 
+        if (!response.ok) {
+            throw new Error('Hard reset failed');
+        }
+
+        alert('Hard reset performed successfully');
+        updateDashboard();  // Refresh the dashboard after reset
+    } catch (error) {
+        console.error('Hard reset error:', error);
+        alert('Hard reset failed. Please try again.');
+    }
+}
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     
@@ -164,5 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
+    }
+        const hardResetButton = document.getElementById('hard-reset-button');
+    if (hardResetButton) {
+        hardResetButton.addEventListener('click', performHardReset);
     }
 });
