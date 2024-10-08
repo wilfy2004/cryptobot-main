@@ -64,13 +64,12 @@ async function updateDashboard() {
                     ${recentTrades.map(trade => `
                         <tr>
                             <td>${trade.symbol}</td>
+                            <td>${trade.buyTime}</td>
                             <td>$${trade.buyPrice}</td>
                             <td>${trade.sellPrice === 'Not sold' ? trade.sellPrice : '$' + trade.sellPrice}</td>
                             <td>${trade.quantity}</td>
                             <td>${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}</td>
                             <td>${trade.profitPercentage}</td>
-                            <td>${trade.buyTime}</td>
-                            <td>${trade.sellTime || 'N/A'}</td>
                         </tr>
                     `).join('')}
                 </tbody>
