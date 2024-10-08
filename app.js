@@ -30,10 +30,21 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const activeTrade = await fetchData('/api/active-trade');
         const recentTrades = await fetchData('/api/recent-trades');
+        const performanceMetrics = await fetchData('/api/performance-metrics');
         
-        document.getElementById('account-info').innerHTML = `
-            <h2>Account Info</h2>
-            <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+        document.getElementById('account-info-and-metrics').innerHTML = `
+            <div class="info-section">
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            </div>
+            <div class="info-section">
+                <h2>Performance Metrics</h2>
+                <p>Total Trades: ${performanceMetrics.totalTrades}</p>
+                <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
+                <p>Total Profit: $${performanceMetrics.totalProfit}</p>
+                <p>Win Rate: ${performanceMetrics.winRate}%</p>
+                <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
+            </div>
         `;
         
         document.getElementById('active-trade').innerHTML = activeTrade
