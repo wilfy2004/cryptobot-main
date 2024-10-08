@@ -57,7 +57,6 @@ async function updateDashboard() {
                 <th>Profit</th>
                 <th>Profit %</th>
                 <th>Buy Time</th>
-                <th>Sell Time</th>
             </tr>
         </thead>
         <tbody>
@@ -70,7 +69,6 @@ async function updateDashboard() {
                     <td>${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}</td>
                     <td>${trade.profitPercentage}</td>
                     <td>${trade.buyTime}</td>
-                    <td>${trade.sellTime}</td>
                 </tr>
             `).join('')}
         </tbody>
