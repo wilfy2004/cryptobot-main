@@ -46,34 +46,36 @@ async function updateDashboard() {
             : '<h2>No Active Trade</h2>';
         
         document.getElementById('recent-trades').innerHTML = `
-    <h2>Recent Trades</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Symbol</th>
-                <th>Buy Price</th>
-                <th>Sell Price</th>
-                <th>Quantity</th>
-                <th>Profit</th>
-                <th>Profit %</th>
-                <th>Buy Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${recentTrades.map(trade => `
-                <tr>
-                    <td>${trade.symbol}</td>
-                    <td>$${trade.buyPrice}</td>
-                    <td>${trade.sellPrice === 'Not sold' ? trade.sellPrice : '$' + trade.sellPrice}</td>
-                    <td>${trade.quantity}</td>
-                    <td>${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}</td>
-                    <td>${trade.profitPercentage}</td>
-                    <td>${trade.buyTime}</td>
-                </tr>
-            `).join('')}
-        </tbody>
-    </table>
-`;
+            <h2>Recent Trades</h2>
+            <table class="recent-trades-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Buy Price</th>
+                        <th>Sell Price</th>
+                        <th>Quantity</th>
+                        <th>Profit</th>
+                        <th>Profit %</th>
+                        <th>Buy Time</th>
+                        <th>Sell Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${recentTrades.map(trade => `
+                        <tr>
+                            <td>${trade.symbol}</td>
+                            <td>$${trade.buyPrice}</td>
+                            <td>${trade.sellPrice === 'Not sold' ? trade.sellPrice : '$' + trade.sellPrice}</td>
+                            <td>${trade.quantity}</td>
+                            <td>${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}</td>
+                            <td>${trade.profitPercentage}</td>
+                            <td>${trade.buyTime}</td>
+                            <td>${trade.sellTime || 'N/A'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
     } catch (error) {
         console.error('Error updating dashboard:', error);
         if (error.message.includes('No authentication token found')) {
