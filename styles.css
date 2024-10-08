@@ -6,7 +6,7 @@ body {
 }
 
 #app {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     background-color: white;
     padding: 20px;
@@ -14,11 +14,20 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-h1 {
+h1, h2 {
     color: #333;
-    font-size: 24px;
     margin-bottom: 20px;
     text-align: center;
+}
+
+h1 {
+    font-size: 24px;
+}
+
+h2 {
+    font-size: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
 }
 
 #login-form {
@@ -44,10 +53,65 @@ h1 {
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#login-form button:hover, #logout-button:hover {
+    background-color: #45a049;
 }
 
 #logout-button {
     margin-top: 20px;
+}
+
+/* Styles for the recent trades table */
+.recent-trades-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.recent-trades-table th, .recent-trades-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.recent-trades-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.recent-trades-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.recent-trades-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #app {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    .recent-trades-table {
+        font-size: 12px;
+    }
+
+    .recent-trades-table th, .recent-trades-table td {
+        padding: 8px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -56,14 +120,26 @@ h1 {
     }
 
     #app {
-        padding: 15px;
+        padding: 10px;
     }
 
     h1 {
         font-size: 20px;
     }
 
+    h2 {
+        font-size: 16px;
+    }
+
     #login-form input, #login-form button {
         font-size: 14px;
+    }
+
+    .recent-trades-table {
+        font-size: 10px;
+    }
+
+    .recent-trades-table th, .recent-trades-table td {
+        padding: 6px;
     }
 }
