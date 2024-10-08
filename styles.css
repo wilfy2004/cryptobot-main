@@ -79,7 +79,35 @@ h2 {
 #hard-reset-button:hover {
     background-color: #c9302c;
 }
+#account-info-and-metrics {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
 
+.info-section {
+    flex: 1;
+    min-width: 250px;
+    margin: 10px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.info-section h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.info-section p {
+    margin: 5px 0;
+    font-size: 14px;
+}
 /* Styles for the recent trades table */
 .recent-trades-table {
     width: 100%;
@@ -129,7 +157,15 @@ h2 {
         padding: 8px;
     }
 }
-
+@media (max-width: 600px) {
+    #account-info-and-metrics {
+        flex-direction: column;
+    }
+    
+    .info-section {
+        margin: 10px 0;
+    }
+}
 @media (max-width: 480px) {
     body {
         padding: 10px;
