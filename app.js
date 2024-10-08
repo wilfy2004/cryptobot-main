@@ -48,11 +48,11 @@ async function updateDashboard() {
         document.getElementById('recent-trades').innerHTML = `
             <h2>Recent Trades</h2>
             <ul>
-                ${recentTrades.map(trade => `
-                    <li>${trade.symbol}: ${trade.action} at $${trade.price}</li>
-                `).join('')}
-            </ul>
-        `;
+            ${recentTrades.map(trade => `
+            <li>${trade.symbol}: ${trade.action} at $${parseFloat(trade.price).toFixed(2)} on ${new Date(trade.time).toLocaleString()}</li>
+            `).join('')}
+        </ul>
+`;
     } catch (error) {
         console.error('Error updating dashboard:', error);
         if (error.message.includes('No authentication token found')) {
