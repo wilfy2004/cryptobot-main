@@ -85,6 +85,40 @@ h2 {
     flex-wrap: wrap;
     margin-bottom: 20px;
 }
+#hard-reset-button {
+    background-color: #ff4136;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+#monitored-coins {
+    margin-bottom: 20px;
+}
+
+#confirm-hard-reset, #cancel-hard-reset {
+    padding: 10px 20px;
+    margin-right: 10px;
+}
+
+#confirm-hard-reset {
+    background-color: #ff4136;
+    color: white;
+    border: none;
+}
+
+#confirm-hard-reset:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#cancel-hard-reset {
+    background-color: #ccc;
+    color: black;
+    border: none;
+}
 
 .info-section {
     flex: 1;
