@@ -178,9 +178,72 @@ async function performHardReset() {
         alert('Hard reset failed. Please try again.');
     }
 }
+async function getMonitoredCoins() {
+    try {
+        const response = await fetchData('/api/monitored-coins');
+        return response.coins.filter(coin => coin.dipCount >= 2 && coin.dipCount <= 3);
+    } catch (error) {
+        console.error('Error fetching monitored coins:', error);
+        return [];
+    }
+}
+
+async function showHardResetConfirmation() {
+    const monitoredCoins = await getMonitoredCoins();
+    if (monitoredCoins.length > 0) {
+        window.location.href = 'hard-reset-confirm.html';
+    } else {
+        if (confirm('No coins with 2 or 3 dips are being monitored. Proceed with hard reset?')) {
+            performHardReset();
+        }
+    }
+}
+
+function displayMonitoredCoins(coins) {
+    const monitoredCoinsDiv = document.getElementById('monitored-coins');
+    if (monitoredCoinsDiv) {
+        monitoredCoinsDiv.innerHTML = `
+            <h2>Monitored Coins (2-3 dips)</h2>
+            <ul>
+                ${coins.map(coin => `<li>${coin.symbol}: ${coin.dipCount} dips</li>`).join('')}
+            </ul>
+        `;
+        document.getElementById('confirm-hard-reset').disabled = false;
+    }
+}
+
+async function performHardReset() {
+    try {
+        const response = await fetchData('/api/hard-reset', { method: 'POST' });
+        alert('Hard reset performed successfully');
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Error performing hard reset:', error);
+        alert('Failed to perform hard reset. Please try again.');
+    }
+}
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-    
+
+        const hardResetButton = document.getElementById('hard-reset-button');
+    if (hardResetButton) {
+        hardResetButton.addEventListener('click', showHardResetConfirmation);
+    }
+
+    const confirmHardResetButton = document.getElementById('confirm-hard-reset');
+    if (confirmHardResetButton) {
+        const monitoredCoins = await getMonitoredCoins();
+        displayMonitoredCoins(monitoredCoins);
+        confirmHardResetButton.addEventListener('click', performHardReset);
+    }
+
+    const cancelHardResetButton = document.getElementById('cancel-hard-reset');
+    if (cancelHardResetButton) {
+        cancelHardResetButton.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    }
+});
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
