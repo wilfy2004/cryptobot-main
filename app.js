@@ -160,9 +160,20 @@ function setupActivityListeners() {
 }
 
 async function getMonitoredCoins() {
+    console.log('getMonitoredCoins called');
     try {
         const response = await fetchData('/api/monitored-coins');
-        return response.coins.filter(coin => coin.dipCount >= 2 && coin.dipCount <= 3);
+        console.log('Raw monitored coins response:', response);
+
+        if (!response || !response.coins) {
+            console.error('Unexpected response format from /api/monitored-coins');
+            return [];
+        }
+
+        const filteredCoins = response.coins.filter(coin => coin.dipCount >= 2 && coin.dipCount <= 3);
+        console.log('Filtered coins:', filteredCoins);
+
+        return filteredCoins;
     } catch (error) {
         console.error('Error fetching monitored coins:', error);
         return [];
@@ -174,6 +185,7 @@ async function showHardResetConfirmation() {
     try {
         const monitoredCoins = await getMonitoredCoins();
         console.log('Monitored coins:', monitoredCoins);
+
         if (monitoredCoins.length > 0) {
             console.log('Redirecting to hard-reset-confirm.html');
             window.location.href = 'hard-reset-confirm.html';
@@ -181,7 +193,7 @@ async function showHardResetConfirmation() {
             console.log('No monitored coins, showing confirmation dialog');
             if (confirm('No coins with 2 or 3 dips are being monitored. Proceed with hard reset?')) {
                 console.log('User confirmed, performing hard reset');
-                performHardReset();
+                await performHardReset();
             } else {
                 console.log('User cancelled hard reset');
             }
@@ -204,14 +216,17 @@ async function performHardReset() {
         console.log('Hard reset response:', response);
 
         if (!response.ok) {
-            throw new Error('Hard reset failed');
+            throw new Error(`Hard reset failed with status: ${response.status}`);
         }
+
+        const responseData = await response.json();
+        console.log('Hard reset response data:', responseData);
 
         alert('Hard reset performed successfully');
         updateDashboard();  // Refresh the dashboard after reset
     } catch (error) {
         console.error('Hard reset error:', error);
-        alert('Hard reset failed. Please try again.');
+        alert(`Hard reset failed. Error: ${error.message}`);
     }
 }
 
