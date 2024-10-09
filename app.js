@@ -159,27 +159,6 @@ function setupActivityListeners() {
     });
 }
 
-async function performHardReset() {
-    try {
-        const response = await fetch(`${API_URL}/api/hard-reset`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Hard reset failed');
-        }
-
-        alert('Hard reset performed successfully');
-        updateDashboard();  // Refresh the dashboard after reset
-    } catch (error) {
-        console.error('Hard reset error:', error);
-        alert('Hard reset failed. Please try again.');
-    }
-}
-
 async function getMonitoredCoins() {
     try {
         const response = await fetchData('/api/monitored-coins');
@@ -191,13 +170,48 @@ async function getMonitoredCoins() {
 }
 
 async function showHardResetConfirmation() {
-    const monitoredCoins = await getMonitoredCoins();
-    if (monitoredCoins.length > 0) {
-        window.location.href = 'hard-reset-confirm.html';
-    } else {
-        if (confirm('No coins with 2 or 3 dips are being monitored. Proceed with hard reset?')) {
-            performHardReset();
+    console.log('showHardResetConfirmation called');
+    try {
+        const monitoredCoins = await getMonitoredCoins();
+        console.log('Monitored coins:', monitoredCoins);
+        if (monitoredCoins.length > 0) {
+            console.log('Redirecting to hard-reset-confirm.html');
+            window.location.href = 'hard-reset-confirm.html';
+        } else {
+            console.log('No monitored coins, showing confirmation dialog');
+            if (confirm('No coins with 2 or 3 dips are being monitored. Proceed with hard reset?')) {
+                console.log('User confirmed, performing hard reset');
+                performHardReset();
+            } else {
+                console.log('User cancelled hard reset');
+            }
         }
+    } catch (error) {
+        console.error('Error in showHardResetConfirmation:', error);
+    }
+}
+
+async function performHardReset() {
+    console.log('performHardReset called');
+    try {
+        const response = await fetch(`${API_URL}/api/hard-reset`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+        });
+
+        console.log('Hard reset response:', response);
+
+        if (!response.ok) {
+            throw new Error('Hard reset failed');
+        }
+
+        alert('Hard reset performed successfully');
+        updateDashboard();  // Refresh the dashboard after reset
+    } catch (error) {
+        console.error('Hard reset error:', error);
+        alert('Hard reset failed. Please try again.');
     }
 }
 
@@ -215,11 +229,15 @@ function displayMonitoredCoins(coins) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOMContentLoaded event fired');
     initializeApp();
 
     const hardResetButton = document.getElementById('hard-reset-button');
     if (hardResetButton) {
+        console.log('Hard reset button found, adding event listener');
         hardResetButton.addEventListener('click', showHardResetConfirmation);
+    } else {
+        console.log('Hard reset button not found');
     }
 
     const confirmHardResetButton = document.getElementById('confirm-hard-reset');
