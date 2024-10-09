@@ -176,7 +176,8 @@ async function getMonitoredCoins() {
         return filteredCoins;
     } catch (error) {
         console.error('Error fetching monitored coins:', error);
-        return [];
+        // Instead of returning an empty array, throw the error
+        throw error;
     }
 }
 
@@ -200,6 +201,7 @@ async function showHardResetConfirmation() {
         }
     } catch (error) {
         console.error('Error in showHardResetConfirmation:', error);
+        alert('Error fetching monitored coins. Please try again or contact support.');
     }
 }
 
