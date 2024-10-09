@@ -158,6 +158,7 @@ function setupActivityListeners() {
         document.addEventListener(eventType, resetLogoutTimer);
     });
 }
+
 async function performHardReset() {
     try {
         const response = await fetch(`${API_URL}/api/hard-reset`, {
@@ -178,6 +179,7 @@ async function performHardReset() {
         alert('Hard reset failed. Please try again.');
     }
 }
+
 async function getMonitoredCoins() {
     try {
         const response = await fetchData('/api/monitored-coins');
@@ -212,20 +214,10 @@ function displayMonitoredCoins(coins) {
     }
 }
 
-async function performHardReset() {
-    try {
-        const response = await fetchData('/api/hard-reset', { method: 'POST' });
-        alert('Hard reset performed successfully');
-        window.location.href = 'index.html';
-    } catch (error) {
-        console.error('Error performing hard reset:', error);
-        alert('Failed to perform hard reset. Please try again.');
-    }
-}
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initializeApp();
 
-        const hardResetButton = document.getElementById('hard-reset-button');
+    const hardResetButton = document.getElementById('hard-reset-button');
     if (hardResetButton) {
         hardResetButton.addEventListener('click', showHardResetConfirmation);
     }
@@ -243,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'index.html';
         });
     }
-});
+
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
@@ -257,9 +249,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
-    }
-        const hardResetButton = document.getElementById('hard-reset-button');
-    if (hardResetButton) {
-        hardResetButton.addEventListener('click', performHardReset);
     }
 });
