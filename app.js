@@ -176,6 +176,23 @@ function setupActivityListeners() {
 }
 
 function initializeApp() {
+    const currentPage = window.location.pathname.split('/').pop();
+
+    // Special handling for login page
+    if (currentPage === 'login.html') {
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                login(username, password);
+            });
+        }
+        return; // Exit the function early for login page
+    }
+
+    // For all other pages, check authentication
     const token = localStorage.getItem('auth_token');
     if (!token) {
         window.location.href = 'login.html';
@@ -185,10 +202,9 @@ function initializeApp() {
     resetLogoutTimer();
     setupActivityListeners();
 
-    const currentPage = window.location.pathname.split('/').pop();
-
     switch (currentPage) {
         case 'index.html':
+        case '':  // Handle case when accessed via directory without filename
             setupMainPageListeners();
             break;
         case 'recent-trades.html':
@@ -204,7 +220,7 @@ function initializeApp() {
     }
 
     // Set up back button listeners for all pages except index
-    if (currentPage !== 'index.html') {
+    if (currentPage !== 'index.html' && currentPage !== '') {
         const backButton = document.getElementById('back-button');
         if (backButton) {
             backButton.addEventListener('click', () => {
