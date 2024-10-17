@@ -218,7 +218,26 @@ function setupActivityListeners() {
     });
 }
 
+function initializeLoginPage() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            login(username, password);
+        });
+    }
+}
+
 function initializeApp() {
+    const currentPage = window.location.pathname.split('/').pop();
+
+    if (currentPage === 'login.html' || currentPage === '') {
+        initializeLoginPage();
+        return; // Exit early for login page
+    }
+
     const token = localStorage.getItem('auth_token');
     if (!token) {
         window.location.href = 'login.html';
