@@ -62,10 +62,45 @@ async function login(username, password) {
     }
 }
 
+async function updateDashboard() {
+    try {
+        const accountInfo = await fetchData('/api/account-info');
+        const activeTrade = await fetchData('/api/active-trade');
+        const performanceMetrics = await fetchData('/api/performance-metrics');
+        
+        document.getElementById('account-info').innerHTML = `
+            <h2>Account Info</h2>
+            <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+        `;
+        
+        document.getElementById('performance-metrics').innerHTML = `
+            <h2>Performance Metrics</h2>
+            <p>Total Trades: ${performanceMetrics.totalTrades}</p>
+            <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
+            <p>Total Profit: $${performanceMetrics.totalProfit}</p>
+            <p>Win Rate: ${performanceMetrics.winRate}%</p>
+            <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
+        `;
+        
+        document.getElementById('active-trade').innerHTML = activeTrade
+            ? `
+                <h2>Active Trade</h2>
+                <p>Symbol: ${activeTrade.symbol}</p>
+                <p>Entry Price: $${activeTrade.entryPrice}</p>
+                <p>Current Price: $${activeTrade.currentPrice}</p>
+                <p>Quantity: ${activeTrade.quantity}</p>
+            `
+            : '<h2>No Active Trade</h2>';
+    } catch (error) {
+        console.error('Error updating dashboard:', error);
+    }
+}
+
 async function loadRecentTrades() {
     try {
         const recentTrades = await fetchData('/api/recent-trades');
         const tableHtml = `
+            <h2>Recent Trades</h2>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -93,17 +128,22 @@ async function loadRecentTrades() {
                 </tbody>
             </table>
         `;
-        document.getElementById('recent-trades-table').innerHTML = tableHtml;
+        document.getElementById('content').innerHTML = tableHtml;
     } catch (error) {
         console.error('Error loading recent trades:', error);
-        document.getElementById('recent-trades-table').innerHTML = '<p>Error loading recent trades. Please try again.</p>';
+        document.getElementById('content').innerHTML = '<p>Error loading recent trades. Please try again.</p>';
     }
 }
 
 async function loadMonitoredCoins() {
     try {
         const monitoredCoins = await fetchData('/api/monitored-coins');
+        console.log('Monitored coins response:', monitoredCoins); // Debug log
+        if (!monitoredCoins || !monitoredCoins.coins || !Array.isArray(monitoredCoins.coins)) {
+            throw new Error('Invalid monitored coins data received');
+        }
         const tableHtml = `
+            <h2>Monitored Coins</h2>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -121,10 +161,10 @@ async function loadMonitoredCoins() {
                 </tbody>
             </table>
         `;
-        document.getElementById('monitored-coins-table').innerHTML = tableHtml;
+        document.getElementById('content').innerHTML = tableHtml;
     } catch (error) {
         console.error('Error loading monitored coins:', error);
-        document.getElementById('monitored-coins-table').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
+        document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
     }
 }
 
@@ -138,13 +178,16 @@ function loadHardResetInfo() {
         'positions'
     ];
     const resetInfoHtml = `
-        <h2>The following variables will be reset:</h2>
+        <h2>Hard Reset</h2>
+        <p>The following variables will be reset:</p>
         <ul>
             ${resetVariables.map(variable => `<li>${variable}</li>`).join('')}
         </ul>
         <p>Are you sure you want to proceed with the hard reset?</p>
+        <button id="confirm-hard-reset">Confirm Hard Reset</button>
     `;
-    document.getElementById('reset-variables').innerHTML = resetInfoHtml;
+    document.getElementById('content').innerHTML = resetInfoHtml;
+    document.getElementById('confirm-hard-reset').addEventListener('click', performHardReset);
 }
 
 async function performHardReset() {
@@ -176,23 +219,6 @@ function setupActivityListeners() {
 }
 
 function initializeApp() {
-    const currentPage = window.location.pathname.split('/').pop();
-
-    // Special handling for login page
-    if (currentPage === 'login.html') {
-        const loginForm = document.getElementById('login-form');
-        if (loginForm) {
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                login(username, password);
-            });
-        }
-        return; // Exit the function early for login page
-    }
-
-    // For all other pages, check authentication
     const token = localStorage.getItem('auth_token');
     if (!token) {
         window.location.href = 'login.html';
@@ -201,60 +227,21 @@ function initializeApp() {
 
     resetLogoutTimer();
     setupActivityListeners();
+    setupNavigation();
+    updateDashboard();
+    dashboardInterval = setInterval(updateDashboard, 10000);
+}
 
-    switch (currentPage) {
-        case 'index.html':
-        case '':  // Handle case when accessed via directory without filename
-            setupMainPageListeners();
-            break;
-        case 'recent-trades.html':
-            loadRecentTrades();
-            break;
-        case 'monitored-coins.html':
-            loadMonitoredCoins();
-            break;
-        case 'hard-reset.html':
-            loadHardResetInfo();
-            setupHardResetListeners();
-            break;
-    }
-
-    // Set up back button listeners for all pages except index
-    if (currentPage !== 'index.html' && currentPage !== '') {
-        const backButton = document.getElementById('back-button');
-        if (backButton) {
-            backButton.addEventListener('click', () => {
-                window.location.href = 'index.html';
-            });
-        }
-    }
-
-    // Set up logout button listener for all pages
+function setupNavigation() {
+    const recentTradesButton = document.getElementById('recent-trades-button');
+    const monitoredCoinsButton = document.getElementById('monitored-coins-button');
+    const hardResetButton = document.getElementById('hard-reset-button');
     const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', handleLogout);
-    }
-}
 
-function setupMainPageListeners() {
-    document.getElementById('recent-trades-button').addEventListener('click', () => {
-        window.location.href = 'recent-trades.html';
-    });
-
-    document.getElementById('monitored-coins-button').addEventListener('click', () => {
-        window.location.href = 'monitored-coins.html';
-    });
-
-    document.getElementById('hard-reset-button').addEventListener('click', () => {
-        window.location.href = 'hard-reset.html';
-    });
-}
-
-function setupHardResetListeners() {
-    const confirmHardResetButton = document.getElementById('confirm-hard-reset');
-    if (confirmHardResetButton) {
-        confirmHardResetButton.addEventListener('click', performHardReset);
-    }
+    if (recentTradesButton) recentTradesButton.addEventListener('click', loadRecentTrades);
+    if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', loadMonitoredCoins);
+    if (hardResetButton) hardResetButton.addEventListener('click', loadHardResetInfo);
+    if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
