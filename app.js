@@ -137,11 +137,22 @@ async function loadRecentTrades() {
 
 async function loadMonitoredCoins() {
     try {
-        const monitoredCoins = await fetchData('/api/monitored-coins');
-        console.log('Monitored coins response:', monitoredCoins); // Debug log
-        if (!monitoredCoins || !monitoredCoins.coins || !Array.isArray(monitoredCoins.coins)) {
+        const response = await fetchData('/api/monitored-coins');
+        console.log('Raw monitored coins response:', response);
+
+        let monitoredCoins;
+        if (Array.isArray(response)) {
+            monitoredCoins = { coins: response };
+        } else if (typeof response === 'object' && response !== null) {
+            monitoredCoins = response;
+        } else {
+            throw new Error('Unexpected response format');
+        }
+
+        if (!monitoredCoins.coins || !Array.isArray(monitoredCoins.coins)) {
             throw new Error('Invalid monitored coins data received');
         }
+
         const tableHtml = `
             <h2>Monitored Coins</h2>
             <table class="data-table">
@@ -231,11 +242,11 @@ function initializeLoginPage() {
 }
 
 function initializeApp() {
-    const currentPage = window.location.pathname.split('/').pop();
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
-    if (currentPage === 'login.html' || currentPage === '') {
+    if (currentPage === 'login.html') {
         initializeLoginPage();
-        return; // Exit early for login page
+        return;
     }
 
     const token = localStorage.getItem('auth_token');
@@ -247,8 +258,22 @@ function initializeApp() {
     resetLogoutTimer();
     setupActivityListeners();
     setupNavigation();
-    updateDashboard();
-    dashboardInterval = setInterval(updateDashboard, 10000);
+
+    switch (currentPage) {
+        case 'index.html':
+            updateDashboard();
+            dashboardInterval = setInterval(updateDashboard, 10000);
+            break;
+        case 'recent-trades.html':
+            loadRecentTrades();
+            break;
+        case 'monitored-coins.html':
+            loadMonitoredCoins();
+            break;
+        case 'hard-reset.html':
+            loadHardResetInfo();
+            break;
+    }
 }
 
 function setupNavigation() {
@@ -257,9 +282,9 @@ function setupNavigation() {
     const hardResetButton = document.getElementById('hard-reset-button');
     const logoutButton = document.getElementById('logout-button');
 
-    if (recentTradesButton) recentTradesButton.addEventListener('click', loadRecentTrades);
-    if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', loadMonitoredCoins);
-    if (hardResetButton) hardResetButton.addEventListener('click', loadHardResetInfo);
+    if (recentTradesButton) recentTradesButton.addEventListener('click', () => window.location.href = 'recent-trades.html');
+    if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', () => window.location.href = 'monitored-coins.html');
+    if (hardResetButton) hardResetButton.addEventListener('click', () => window.location.href = 'hard-reset.html');
     if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 }
 
