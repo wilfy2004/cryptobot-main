@@ -17,11 +17,11 @@ body {
 h1, h2 {
     color: #333;
     margin-bottom: 20px;
-    text-align: left;
 }
 
 h1 {
     font-size: 24px;
+    text-align: center;
 }
 
 h2 {
@@ -30,202 +30,21 @@ h2 {
     padding-bottom: 10px;
 }
 
-#login-form {
+button {
+    padding: 12px 20px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#main-buttons {
     display: flex;
     flex-direction: column;
-    max-width: 300px;
-    margin: 20px auto;
+    align-items: center;
 }
 
-#login-form input {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-#login-form button, #logout-button {
-    padding: 12px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-}
-
-#login-form button:hover, #logout-button:hover {
-    background-color: #45a049;
-}
-
-#logout-button {
-    margin-top: 20px;
-}
-
-#hard-reset-button {
-    padding: 12px;
-    background-color: #d9534f;  /* Red color for caution */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-    margin-top: 20px;
-}
-
-#hard-reset-button:hover {
-    background-color: #c9302c;
-}
-#account-info-and-metrics {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-#hard-reset-button {
-    background-color: #ff4136;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin-top: 20px;
-    cursor: pointer;
-}
-
-#monitored-coins {
-    margin-bottom: 20px;
-}
-
-#confirm-hard-reset, #cancel-hard-reset {
-    padding: 10px 20px;
-    margin-right: 10px;
-}
-
-#confirm-hard-reset {
-    background-color: #ff4136;
-    color: white;
-    border: none;
-}
-
-#confirm-hard-reset:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-#cancel-hard-reset {
-    background-color: #ccc;
-    color: black;
-    border: none;
-}
-
-.info-section {
-    flex: 1;
-    min-width: 250px;
-    margin: 10px;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.info-section h2 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 18px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.info-section p {
-    margin: 5px 0;
-    font-size: 14px;
-}
-/* Styles for the recent trades table */
-.recent-trades-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 14px;
-}
-
-.recent-trades-table th, .recent-trades-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
-
-.recent-trades-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-}
-
-.recent-trades-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.recent-trades-table tr:hover {
-    background-color: #f5f5f5;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    #app {
-        padding: 15px;
-    }
-
-    h1 {
-        font-size: 22px;
-    }
-
-    h2 {
-        font-size: 18px;
-    }
-
-    .recent-trades-table {
-        font-size: 12px;
-    }
-
-    .recent-trades-table th, .recent-trades-table td {
-        padding: 8px;
-    }
-}
-@media (max-width: 600px) {
-    #account-info-and-metrics {
-        flex-direction: column;
-    }
-    
-    .info-section {
-        margin: 10px 0;
-    }
-}
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-
-    #app {
-        padding: 10px;
-    }
-
-    h1 {
-        font-size: 20px;
-    }
-
-    h2 {
-        font-size: 16px;
-    }
-
-    #login-form input, #login-form button {
-        font-size: 14px;
-    }
-
-    .recent-trades-table {
-        font-size: 10px;
-    }
-
-    .recent-trades-table th, .recent-trades-table td {
-        padding: 6px;
-    }
-}
+#main-buttons button {
+    width:
