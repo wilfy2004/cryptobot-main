@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Bot Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
 </head>
 <body>
     <div id="app">
@@ -23,5 +26,12 @@
         <button id="logout-button">Logout</button>
     </div>
     <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+              .then((reg) => console.log('Service worker registered', reg))
+              .catch((err) => console.log('Service worker not registered', err));
+        }
+    </script>
 </body>
 </html>
