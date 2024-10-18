@@ -228,6 +228,35 @@ async function performHardReset() {
     }
 }
 
+function loadActiveCoinChart() {
+    fetchData('/api/active-trade')
+        .then(activeTrade => {
+            if (activeTrade && activeTrade.symbol) {
+                const symbol = activeTrade.symbol;
+                new TradingView.widget({
+                    "width": "100%",
+                    "height": 500,
+                    "symbol": `BINANCE:${symbol}`,
+                    "interval": "D",
+                    "timezone": "Etc/UTC",
+                    "theme": "light",
+                    "style": "1",
+                    "locale": "en",
+                    "toolbar_bg": "#f1f3f6",
+                    "enable_publishing": false,
+                    "allow_symbol_change": false,
+                    "container_id": "tradingview_widget"
+                });
+                document.getElementById('app').insertAdjacentHTML('afterbegin', `<h2>Chart for ${symbol}</h2>`);
+            } else {
+                document.getElementById('tradingview_widget').innerHTML = '<p>No active trade at the moment.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading active trade:', error);
+            document.getElementById('tradingview_widget').innerHTML = '<p>Error loading active trade data.</p>';
+        });
+}
 
 function setupActivityListeners() {
     ['click', 'touchstart', 'mousemove', 'keypress'].forEach(eventType => {
@@ -279,6 +308,9 @@ function initializeApp() {
         case 'hard-reset-confirm.html':
             loadHardResetInfo();
             break;
+        case 'active-coin-chart.html':
+            loadActiveCoinChart();
+            break;
     }
 }
 
@@ -286,11 +318,13 @@ function setupNavigation() {
     const recentTradesButton = document.getElementById('recent-trades-button');
     const monitoredCoinsButton = document.getElementById('monitored-coins-button');
     const hardResetButton = document.getElementById('hard-reset-button');
+    const activeCoinChartButton = document.getElementById('active-coin-chart-button');
     const logoutButton = document.getElementById('logout-button');
 
     if (recentTradesButton) recentTradesButton.addEventListener('click', () => window.location.href = 'recent-trades.html');
     if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', () => window.location.href = 'monitored-coins.html');
     if (hardResetButton) hardResetButton.addEventListener('click', () => window.location.href = 'hard-reset-confirm.html');
+    if (activeCoinChartButton) activeCoinChartButton.addEventListener('click', () => window.location.href = 'active-coin-chart.html');
     if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 }
 
