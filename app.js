@@ -184,9 +184,7 @@ function loadHardResetInfo() {
         'monitoringCoins',
         'dippedCoins',
         'lastDipTime',
-        'trailingStops',
-        'activeTradeSymbol',
-        'positions'
+        'trailingStops'
     ];
     const resetInfoHtml = `
         <h2>Hard Reset Confirmation</h2>
