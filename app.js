@@ -284,7 +284,7 @@ function setupNavigation() {
 
     if (recentTradesButton) recentTradesButton.addEventListener('click', () => window.location.href = 'recent-trades.html');
     if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', () => window.location.href = 'monitored-coins.html');
-    if (hardResetButton) hardResetButton.addEventListener('click', () => window.location.href = 'hard-reset.html');
+    if (hardResetButton) hardResetButton.addEventListener('click', () => window.location.href = 'hard-reset-confirm.html');
     if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 }
 
