@@ -247,14 +247,14 @@ function loadActiveCoinChart() {
                     "allow_symbol_change": false,
                     "container_id": "tradingview_widget"
                 });
-                document.getElementById('app').insertAdjacentHTML('afterbegin', `<h2>Chart for ${symbol}</h2>`);
+                document.getElementById('content').innerHTML = `<h2>Chart for ${symbol}</h2><div id="tradingview_widget"></div>`;
             } else {
-                document.getElementById('tradingview_widget').innerHTML = '<p>No active trade at the moment.</p>';
+                document.getElementById('content').innerHTML = '<p>No active trade at the moment.</p>';
             }
         })
         .catch(error => {
             console.error('Error loading active trade:', error);
-            document.getElementById('tradingview_widget').innerHTML = '<p>Error loading active trade data.</p>';
+            document.getElementById('content').innerHTML = '<p>Error loading active trade data.</p>';
         });
 }
 
