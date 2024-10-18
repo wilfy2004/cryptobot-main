@@ -189,16 +189,23 @@ function loadHardResetInfo() {
         'positions'
     ];
     const resetInfoHtml = `
-        <h2>Hard Reset</h2>
-        <p>The following variables will be reset:</p>
+        <h2>Hard Reset Confirmation</h2>
+        <p>Warning: This action will reset the following variables:</p>
         <ul>
             ${resetVariables.map(variable => `<li>${variable}</li>`).join('')}
         </ul>
         <p>Are you sure you want to proceed with the hard reset?</p>
         <button id="confirm-hard-reset">Confirm Hard Reset</button>
+        <button id="cancel-hard-reset">Cancel</button>
     `;
-    document.getElementById('content').innerHTML = resetInfoHtml;
-    document.getElementById('confirm-hard-reset').addEventListener('click', performHardReset);
+    const contentElement = document.getElementById('content');
+    if (contentElement) {
+        contentElement.innerHTML = resetInfoHtml;
+        document.getElementById('confirm-hard-reset').addEventListener('click', performHardReset);
+        document.getElementById('cancel-hard-reset').addEventListener('click', () => window.location.href = 'index.html');
+    } else {
+        console.error('Content element not found');
+    }
 }
 
 async function performHardReset() {
@@ -222,6 +229,7 @@ async function performHardReset() {
         alert(`Hard reset failed. Error: ${error.message}`);
     }
 }
+
 
 function setupActivityListeners() {
     ['click', 'touchstart', 'mousemove', 'keypress'].forEach(eventType => {
@@ -270,7 +278,7 @@ function initializeApp() {
         case 'monitored-coins.html':
             loadMonitoredCoins();
             break;
-        case 'hard-reset.html':
+        case 'hard-reset-confirm.html':
             loadHardResetInfo();
             break;
     }
