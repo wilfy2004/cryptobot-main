@@ -137,42 +137,29 @@ async function loadRecentTrades() {
 
 async function loadMonitoredCoins() {
     try {
-        console.log('Starting to fetch monitored coins...');
         const response = await fetchData('/api/monitored-coins');
         console.log('Raw monitored coins response:', response);
 
         let monitoredCoins;
         if (Array.isArray(response)) {
-            console.log('Response is an array, converting to object format');
             monitoredCoins = { coins: response };
         } else if (typeof response === 'object' && response !== null) {
-            console.log('Response is an object');
             monitoredCoins = response;
         } else {
-            console.error('Unexpected response format:', response);
             throw new Error('Unexpected response format');
         }
 
         if (!monitoredCoins.coins || !Array.isArray(monitoredCoins.coins)) {
-            console.error('Invalid coins data:', monitoredCoins);
             throw new Error('Invalid monitored coins data received');
         }
 
-        // Create HTML with timing information
         const tableHtml = `
             <h2>Monitored Coins</h2>
-            <div class="stats">
-                <p>Total Monitored: ${monitoredCoins.totalMonitored}</p>
-                <p>Coins with Dips: ${monitoredCoins.coinsWithTwoOrThreeDips}</p>
-            </div>
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>Symbol</th>
                         <th>Dip Count</th>
-                        <th>State</th>
-                        <th>First Dip</th>
-                        <th>Last Dip</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -180,9 +167,6 @@ async function loadMonitoredCoins() {
                         <tr>
                             <td>${coin.symbol}</td>
                             <td>${coin.dipCount}</td>
-                            <td>${coin.state}</td>
-                            <td>${coin.timing?.firstDip?.time ? `${coin.timing.firstDip.time} (${coin.timing.firstDip.ago})` : '-'}</td>
-                            <td>${coin.timing?.lastDip?.time ? `${coin.timing.lastDip.time} (${coin.timing.lastDip.ago})` : '-'}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -191,11 +175,9 @@ async function loadMonitoredCoins() {
         document.getElementById('content').innerHTML = tableHtml;
     } catch (error) {
         console.error('Error loading monitored coins:', error);
-        console.error('Error stack:', error.stack);
         document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
     }
 }
-
         // Update summary stats
         const summaryHtml = `
             <h2>Monitoring Status</h2>
