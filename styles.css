@@ -30,7 +30,24 @@
     border-radius: 3px;
     font-size: 12px;  /* Reduced font size */
 }
+.summary {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
 
+.data-table td {
+    padding: 8px;
+    font-size: 14px;
+}
+
+/* Optional: Styling for the timing information */
+.data-table td:nth-child(4),
+.data-table td:nth-child(5) {
+    color: #2196F3;  /* Blue color for timing information */
+}
 .coin-state {
     color: #666;
     font-size: 12px;  /* Reduced font size */
