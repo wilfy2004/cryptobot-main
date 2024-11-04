@@ -162,6 +162,9 @@ async function loadMonitoredCoins() {
                     <tr>
                         <th>Symbol</th>
                         <th>Dip Count</th>
+                        <th>State</th>
+                        <th>First Dip</th>
+                        <th>Last Dip</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -169,6 +172,9 @@ async function loadMonitoredCoins() {
                         <tr>
                             <td>${coin.symbol}</td>
                             <td>${coin.dipCount}</td>
+                            <td>${coin.state}</td>
+                            <td>${coin.timing?.firstDip?.time ? `${coin.timing.firstDip.time} (${coin.timing.firstDip.ago})` : '-'}</td>
+                            <td>${coin.timing?.lastDip?.time ? `${coin.timing.lastDip.time} (${coin.timing.lastDip.ago})` : '-'}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -180,7 +186,6 @@ async function loadMonitoredCoins() {
         document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
     }
 }
-
 function loadHardResetInfo() {
     const resetVariables = [
         'monitoringCoins',
