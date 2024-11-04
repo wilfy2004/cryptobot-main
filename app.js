@@ -162,28 +162,15 @@ async function loadMonitoredCoins() {
                     <tr>
                         <th>Symbol</th>
                         <th>Dip Count</th>
-                        <th>State</th>
-                        <th>First Dip</th>
-                        <th>Last Dip</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${monitoredCoins.coins.map(coin => {
-                        const firstDipTime = coin.timing && coin.timing.firstDip ? coin.timing.firstDip.time : '-';
-                        const firstDipAgo = coin.timing && coin.timing.firstDip ? coin.timing.firstDip.ago : '';
-                        const lastDipTime = coin.timing && coin.timing.lastDip ? coin.timing.lastDip.time : '-';
-                        const lastDipAgo = coin.timing && coin.timing.lastDip ? coin.timing.lastDip.ago : '';
-                        
-                        return `
-                            <tr>
-                                <td>${coin.symbol}</td>
-                                <td>${coin.dipCount}</td>
-                                <td>${coin.state}</td>
-                                <td>${firstDipTime}${firstDipAgo ? ` (${firstDipAgo})` : ''}</td>
-                                <td>${lastDipTime}${lastDipAgo ? ` (${lastDipAgo})` : ''}</td>
-                            </tr>
-                        `;
-                    }).join('')}
+                    ${monitoredCoins.coins.map(coin => `
+                        <tr>
+                            <td>${coin.symbol}</td>
+                            <td>${coin.dipCount}</td>
+                        </tr>
+                    `).join('')}
                 </tbody>
             </table>
         `;
