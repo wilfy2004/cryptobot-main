@@ -2,6 +2,8 @@ const API_URL = 'https://nodered.wilfy2004.synology.me';
 let dashboardInterval;
 let logoutTimer;
 const LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
+// Add this to specifically track if app is running on GitHub Pages
+const isGitHubPages = window.location.hostname.includes('github.io');
 
 async function fetchData(endpoint) {
     const token = localStorage.getItem('auth_token');
@@ -137,7 +139,21 @@ async function loadRecentTrades() {
 
 async function loadMonitoredCoins() {
     try {
-        const response = await fetchData('/api/monitored-coins');
+        const response = await fetch(`${API_URL}/api/monitored-coins`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            mode: 'cors'  // Add this line explicitly
+        });
+            if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Monitored coins data:', data);
         console.log('Raw monitored coins response:', response);
 
         let monitoredCoins;
