@@ -139,21 +139,7 @@ async function loadRecentTrades() {
 
 async function loadMonitoredCoins() {
     try {
-        const response = await fetch(`${API_URL}/api/monitored-coins`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            mode: 'cors'  // Add this line explicitly
-        });
-            if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Monitored coins data:', data);
+        const response = await fetchData('/api/monitored-coins');
         console.log('Raw monitored coins response:', response);
 
         let monitoredCoins;
@@ -169,14 +155,6 @@ async function loadMonitoredCoins() {
             throw new Error('Invalid monitored coins data received');
         }
 
-        // Update summary stats
-        document.getElementById('summary-stats').innerHTML = `
-            <div class="summary">
-                <p>Total Monitored: ${monitoredCoins.totalMonitored || 0}</p>
-                <p>Coins with Dips: ${monitoredCoins.coinsWithTwoOrThreeDips || 0}</p>
-            </div>
-        `;
-
         const tableHtml = `
             <h2>Monitored Coins</h2>
             <table class="data-table">
@@ -191,15 +169,18 @@ async function loadMonitoredCoins() {
                 </thead>
                 <tbody>
                     ${monitoredCoins.coins.map(coin => {
-                        const firstDipInfo = coin.timing?.firstDip;
-                        const lastDipInfo = coin.timing?.lastDip;
+                        const firstDipTime = coin.timing && coin.timing.firstDip ? coin.timing.firstDip.time : '-';
+                        const firstDipAgo = coin.timing && coin.timing.firstDip ? coin.timing.firstDip.ago : '';
+                        const lastDipTime = coin.timing && coin.timing.lastDip ? coin.timing.lastDip.time : '-';
+                        const lastDipAgo = coin.timing && coin.timing.lastDip ? coin.timing.lastDip.ago : '';
+                        
                         return `
                             <tr>
                                 <td>${coin.symbol}</td>
                                 <td>${coin.dipCount}</td>
                                 <td>${coin.state}</td>
-                                <td>${firstDipInfo ? `${firstDipInfo.time} (${firstDipInfo.ago})` : '-'}</td>
-                                <td>${lastDipInfo ? `${lastDipInfo.time} (${lastDipInfo.ago})` : '-'}</td>
+                                <td>${firstDipTime}${firstDipAgo ? ` (${firstDipAgo})` : ''}</td>
+                                <td>${lastDipTime}${lastDipAgo ? ` (${lastDipAgo})` : ''}</td>
                             </tr>
                         `;
                     }).join('')}
