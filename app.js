@@ -153,6 +153,14 @@ async function loadMonitoredCoins() {
             throw new Error('Invalid monitored coins data received');
         }
 
+        // Update summary stats
+        document.getElementById('summary-stats').innerHTML = `
+            <div class="summary">
+                <p>Total Monitored: ${monitoredCoins.totalMonitored || 0}</p>
+                <p>Coins with Dips: ${monitoredCoins.coinsWithTwoOrThreeDips || 0}</p>
+            </div>
+        `;
+
         const tableHtml = `
             <h2>Monitored Coins</h2>
             <table class="data-table">
@@ -161,16 +169,24 @@ async function loadMonitoredCoins() {
                         <th>Symbol</th>
                         <th>Dip Count</th>
                         <th>State</th>
+                        <th>First Dip</th>
+                        <th>Last Dip</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${monitoredCoins.coins.map(coin => `
-                        <tr>
-                            <td>${coin.symbol}</td>
-                            <td>${coin.dipCount}</td>
-                            <td>${coin.state}</td>
-                        </tr>
-                    `).join('')}
+                    ${monitoredCoins.coins.map(coin => {
+                        const firstDipInfo = coin.timing?.firstDip;
+                        const lastDipInfo = coin.timing?.lastDip;
+                        return `
+                            <tr>
+                                <td>${coin.symbol}</td>
+                                <td>${coin.dipCount}</td>
+                                <td>${coin.state}</td>
+                                <td>${firstDipInfo ? `${firstDipInfo.time} (${firstDipInfo.ago})` : '-'}</td>
+                                <td>${lastDipInfo ? `${lastDipInfo.time} (${lastDipInfo.ago})` : '-'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
         `;
