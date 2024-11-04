@@ -340,10 +340,66 @@ function setupNavigation() {
     const logoutButton = document.getElementById('logout-button');
 
     if (recentTradesButton) recentTradesButton.addEventListener('click', () => window.location.href = 'recent-trades.html');
-    if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', () => window.location.href = 'monitored-coins.html');
+    if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', () => {
+        console.log('Monitored Coins button clicked');
+        window.location.href = 'monitored-coins.html';
+    });
     if (hardResetButton) hardResetButton.addEventListener('click', () => window.location.href = 'hard-reset-confirm.html');
     if (activeCoinChartButton) activeCoinChartButton.addEventListener('click', () => window.location.href = 'active-coin-chart.html');
     if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 }
 
+function initializeApp() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    console.log('Current page:', currentPage);
+
+    if (currentPage === 'login.html') {
+        initializeLoginPage();
+        return;
+    }
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    resetLogoutTimer();
+    setupActivityListeners();
+    setupNavigation();
+
+    switch (currentPage) {
+        case 'index.html':
+            updateDashboard();
+            dashboardInterval = setInterval(updateDashboard, 10000);
+            break;
+        case 'recent-trades.html':
+            loadRecentTrades();
+            break;
+        case 'monitored-coins.html':
+            console.log('Loading monitored coins...');
+            loadMonitoredCoins();
+            break;
+        case 'hard-reset-confirm.html':
+            loadHardResetInfo();
+            break;
+        case 'active-coin-chart.html':
+            loadActiveCoinChart();
+            break;
+    }
+}
+
+// Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// Add visible error handler for mobile debugging
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.backgroundColor = '#ffebee';
+    errorDiv.style.padding = '10px';
+    errorDiv.style.margin = '10px';
+    errorDiv.style.border = '1px solid #ef9a9a';
+    errorDiv.innerHTML = `Error: ${msg}<br>Line: ${lineNo}`;
+    document.body.insertBefore(errorDiv, document.body.firstChild);
+    return false;
+};
