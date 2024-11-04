@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <div id="app">
+        <h1>Monitored Coins</h1>
+        <div id="summary-stats"></div>
+        <div id="monitored-coins-container">
+            <div id="content" class="coin-grid"></div>
+        </div>
+        <div class="button-container">
+            <button onclick="window.location.href='index.html'" class="navigation-button">Back to Dashboard</button>
+            <button id="logout-button" class="logout-button">Logout</button>
+        </div>
+    </div>
+    <template id="coin-card-template">
+        <div class="coin-card">
+            <div class="coin-header">
+                <h3 class="coin-symbol"></h3>
+                <span class="coin-dips"></span>
+                <span class="coin-state"></span>
+            </div>
+            <div class="coin-timing">
+                <div class="timing-row first-dip">
+                    <span class="label">First Dip:</span>
+                    <span class="time"></span>
+                    <span class="ago"></span>
+                </div>
+                <div class="timing-row last-dip">
+                    <span class="label">Last Dip:</span>
+                    <span class="time"></span>
+                    <span class="ago"></span>
+                </div>
+                <div class="timing-row monitoring">
+                    <span class="label">Monitoring:</span>
+                    <span class="duration"></span>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script src="app.js"></script>
+</body>
+</html>
