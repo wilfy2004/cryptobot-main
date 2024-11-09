@@ -1,8 +1,8 @@
+// Global constants and variables
 const API_URL = 'https://nodered.wilfy2004.synology.me';
 let dashboardInterval;
 let logoutTimer;
 const LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
-// Add this to specifically track if app is running on GitHub Pages
 const isGitHubPages = window.location.hostname.includes('github.io');
 
 async function fetchData(endpoint) {
@@ -25,6 +25,34 @@ async function fetchData(endpoint) {
     }
     
     return response.json();
+}
+
+// Trade timing control functions
+async function updateTradeTiming(minutes) {
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/trade/timing/update`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                parameter: 'trailingStopDuration',
+                adjustment: minutes * 60 * 1000 // Convert minutes to milliseconds
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update trade timing');
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error updating trade timing:', error);
+        throw error;
+    }
 }
 
 function resetLogoutTimer() {
@@ -84,17 +112,50 @@ async function updateDashboard() {
             <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
         `;
         
-        document.getElementById('active-trade').innerHTML = activeTrade
+        // Update active trade section with timing control
+        const activeTradeHtml = activeTrade
             ? `
                 <h2>Active Trade</h2>
                 <p>Symbol: ${activeTrade.symbol}</p>
                 <p>Entry Price: $${activeTrade.entryPrice}</p>
                 <p>Current Price: $${activeTrade.currentPrice}</p>
                 <p>Quantity: ${activeTrade.quantity}</p>
+                <div class="trade-timing-control">
+                    <h3>Trade Timing Control</h3>
+                    <p>Current Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+                    <div class="timing-buttons">
+                        <button onclick="handleExtendTime(30)" class="timing-button">+30 Minutes</button>
+                        <button onclick="handleExtendTime(60)" class="timing-button">+1 Hour</button>
+                        <button onclick="handleExtendTime(120)" class="timing-button">+2 Hours</button>
+                    </div>
+                </div>
             `
             : '<h2>No Active Trade</h2>';
+        
+        document.getElementById('active-trade').innerHTML = activeTradeHtml;
     } catch (error) {
         console.error('Error updating dashboard:', error);
+    }
+}
+
+function formatDuration(ms) {
+    if (!ms) return '0h 0m';
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    return `${hours}h ${minutes}m`;
+}
+
+async function handleExtendTime(minutes) {
+    if (!confirm(`Are you sure you want to extend the trailing stop duration by ${minutes} minutes?`)) {
+        return;
+    }
+
+    try {
+        const result = await updateTradeTiming(minutes);
+        alert('Duration updated successfully');
+        updateDashboard(); // Refresh the dashboard to show new duration
+    } catch (error) {
+        alert('Failed to update duration. Please try again.');
     }
 }
 
@@ -186,6 +247,7 @@ async function loadMonitoredCoins() {
         document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
     }
 }
+
 function loadHardResetInfo() {
     const resetVariables = [
         'monitoringCoins',
@@ -271,56 +333,6 @@ function setupActivityListeners() {
     });
 }
 
-function initializeLoginPage() {
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            login(username, password);
-        });
-    }
-}
-
-function initializeApp() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-
-    if (currentPage === 'login.html') {
-        initializeLoginPage();
-        return;
-    }
-
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    resetLogoutTimer();
-    setupActivityListeners();
-    setupNavigation();
-
-    switch (currentPage) {
-        case 'index.html':
-            updateDashboard();
-            dashboardInterval = setInterval(updateDashboard, 10000);
-            break;
-        case 'recent-trades.html':
-            loadRecentTrades();
-            break;
-        case 'monitored-coins.html':
-            loadMonitoredCoins();
-            break;
-        case 'hard-reset-confirm.html':
-            loadHardResetInfo();
-            break;
-        case 'active-coin-chart.html':
-            loadActiveCoinChart();
-            break;
-    }
-}
-
 function setupNavigation() {
     const recentTradesButton = document.getElementById('recent-trades-button');
     const monitoredCoinsButton = document.getElementById('monitored-coins-button');
@@ -336,6 +348,18 @@ function setupNavigation() {
     if (hardResetButton) hardResetButton.addEventListener('click', () => window.location.href = 'hard-reset-confirm.html');
     if (activeCoinChartButton) activeCoinChartButton.addEventListener('click', () => window.location.href = 'active-coin-chart.html');
     if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+}
+
+function initializeLoginPage() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            login(username, password);
+        });
+    }
 }
 
 function initializeApp() {
@@ -380,6 +404,8 @@ function initializeApp() {
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// Add visible error handler for mobile debugging
 
 // Add visible error handler for mobile debugging
 window.onerror = function(msg, url, lineNo, columnNo, error) {
