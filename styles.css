@@ -23,7 +23,37 @@
     margin: 0;
     color: #333;
 }
+/* Add these new styles for the table container */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 70vh;  /* Makes table scrollable vertically, taking 70% of viewport height */
+    overflow-y: auto;  /* Enables vertical scrolling */
+    margin: 20px 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
+/* Update the data-table styles */
+.data-table {
+    width: 100%;
+    min-width: 800px;  /* Forces horizontal scroll on mobile */
+    border-collapse: collapse;
+}
+
+.data-table th {
+    position: sticky;  /* Makes headers stick to the top */
+    top: 0;
+    background: white;
+    z-index: 1;
+    border-bottom: 2px solid #eee;
+}
+
+.data-table th,
+.data-table td {
+    white-space: nowrap;  /* Prevents text wrapping */
+}
 .coin-dips {
     background: #e3f2fd;
     padding: 8px 16px;
