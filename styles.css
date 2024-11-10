@@ -48,9 +48,9 @@
     background: white;
     z-index: 1;
     border-bottom: 2px solid #eee;
+        font-size: 14px;
 }
 
-.data-table th,
 .data-table td {
     white-space: nowrap;  /* Prevents text wrapping */
 }
@@ -70,13 +70,6 @@
 }
 
 /* Add these styles to your existing styles.css - don't replace anything */
-
-/* Recent trades table styles */
-.data-table {
-    width: 100%;
-    min-width: 800px;  /* Ensures table is scrollable on mobile */
-    border-collapse: collapse;
-}
 
 .table-container {
     overflow-x: auto;
@@ -207,7 +200,7 @@
     width: 100%;
     min-width: 800px;  /* Ensures table is scrollable on mobile */
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 10px;
 }
 
 .recent-trades-table th,
