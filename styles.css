@@ -71,7 +71,7 @@
 
 /* Add these styles to your existing styles.css - don't replace anything */
 
-.table-container {
+/*.table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     margin: 20px 0;
@@ -203,7 +203,7 @@
     font-size: 10px;
 }
 
-.recent-trades-table th,
+/*.recent-trades-table th,
 .recent-trades-table td {
     padding: 16px;
     text-align: left;
