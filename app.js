@@ -159,13 +159,13 @@ async function handleExtendTime(minutes) {
     }
 }
 
-function loadRecentTrades() {
+async function loadRecentTrades() {
     try {
         const recentTrades = await fetchData('/api/recent-trades');
         const tableHtml = `
             <h2>Recent Trades</h2>
-            <div class="recent-trades-container">
-                <table class="recent-trades-table">
+            <div class="table-container">
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>Symbol</th>
@@ -185,12 +185,8 @@ function loadRecentTrades() {
                                 <td>$${trade.buyPrice}</td>
                                 <td>${trade.sellPrice === 'Not sold' ? trade.sellPrice : '$' + trade.sellPrice}</td>
                                 <td>${trade.quantity}</td>
-                                <td class="${parseFloat(trade.profit) >= 0 ? 'trade-buy' : 'trade-sell'}">
-                                    ${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}
-                                </td>
-                                <td class="${parseFloat(trade.profitPercentage) >= 0 ? 'trade-buy' : 'trade-sell'}">
-                                    ${trade.profitPercentage}
-                                </td>
+                                <td>${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}</td>
+                                <td>${trade.profitPercentage}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -203,7 +199,6 @@ function loadRecentTrades() {
         document.getElementById('content').innerHTML = '<p>Error loading recent trades. Please try again.</p>';
     }
 }
-
 async function loadMonitoredCoins() {
     try {
         const response = await fetchData('/api/monitored-coins');
