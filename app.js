@@ -113,24 +113,23 @@ async function updateDashboard() {
         `;
         
         // Update active trade section with timing control
-        const activeTradeHtml = activeTrade
-            ? `
-                <h2>Active Trade</h2>
-                <p>Symbol: ${activeTrade.symbol}</p>
-                <p>Entry Price: $${activeTrade.entryPrice}</p>
-                <p>Current Price: $${activeTrade.currentPrice}</p>
-                <p>Quantity: ${activeTrade.quantity}</p>
-                <div class="trade-timing-control">
-                    <h3>Trade Timing Control</h3>
-                    <p>Current Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-                    <div class="timing-buttons">
-                        <button onclick="handleExtendTime(30)" class="timing-button">+30 Minutes</button>
-                        <button onclick="handleExtendTime(60)" class="timing-button">+1 Hour</button>
-                        <button onclick="handleExtendTime(120)" class="timing-button">+2 Hours</button>
-                    </div>
-                </div>
-            `
-            : '<h2>No Active Trade</h2>';
+// Inside updateDashboard function, in the activeTradeHtml template:
+const activeTradeHtml = activeTrade
+    ? `
+        <h2>Active Trade</h2>
+        <p>Symbol: ${activeTrade.symbol}</p>
+        <p>Entry Price: $${activeTrade.entryPrice}</p>
+        <p>Current Price: $${activeTrade.currentPrice}</p>
+        <p>Quantity: ${activeTrade.quantity}</p>
+        <div class="trade-timing-control">
+            <h3>Trade Timing Control</h3>
+            <p>Current Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+            <div class="timing-buttons">
+                <button onclick="handleExtendTime(120)" class="timing-button">+2 Hours</button>
+            </div>
+        </div>
+    `
+    : '<h2>No Active Trade</h2>';
         
         document.getElementById('active-trade').innerHTML = activeTradeHtml;
     } catch (error) {
