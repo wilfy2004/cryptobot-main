@@ -150,6 +150,53 @@
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
+/* Recent trades table styles */
+.recent-trades-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 20px 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: white;
+}
+
+.recent-trades-table {
+    width: 100%;
+    min-width: 800px;  /* Ensures table is scrollable on mobile */
+    border-collapse: collapse;
+    font-size: 24px;
+}
+
+.recent-trades-table th,
+.recent-trades-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.recent-trades-table th {
+    background: #f8f9fa;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.recent-trades-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Style different trade types */
+.recent-trades-table .trade-buy {
+    color: #4CAF50;  /* Green for buy */
+    font-weight: bold;
+}
+
+.recent-trades-table .trade-sell {
+    color: #f44336;  /* Red for sell */
+    font-weight: bold;
+}
+
 /* Heading styles */
 h1 {
     font-size: 32px;
