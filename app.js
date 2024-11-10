@@ -159,37 +159,43 @@ async function handleExtendTime(minutes) {
     }
 }
 
-async function loadRecentTrades() {
+function loadRecentTrades() {
     try {
         const recentTrades = await fetchData('/api/recent-trades');
         const tableHtml = `
             <h2>Recent Trades</h2>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Symbol</th>
-                        <th>Buy Time</th>
-                        <th>Buy Price</th>
-                        <th>Sell Price</th>
-                        <th>Quantity</th>
-                        <th>Profit</th>
-                        <th>Profit %</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${recentTrades.map(trade => `
+            <div class="recent-trades-container">
+                <table class="recent-trades-table">
+                    <thead>
                         <tr>
-                            <td>${trade.symbol}</td>
-                            <td>${trade.buyTime}</td>
-                            <td>$${trade.buyPrice}</td>
-                            <td>${trade.sellPrice === 'Not sold' ? trade.sellPrice : '$' + trade.sellPrice}</td>
-                            <td>${trade.quantity}</td>
-                            <td>${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}</td>
-                            <td>${trade.profitPercentage}</td>
+                            <th>Symbol</th>
+                            <th>Buy Time</th>
+                            <th>Buy Price</th>
+                            <th>Sell Price</th>
+                            <th>Quantity</th>
+                            <th>Profit</th>
+                            <th>Profit %</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        ${recentTrades.map(trade => `
+                            <tr>
+                                <td>${trade.symbol}</td>
+                                <td>${trade.buyTime}</td>
+                                <td>$${trade.buyPrice}</td>
+                                <td>${trade.sellPrice === 'Not sold' ? trade.sellPrice : '$' + trade.sellPrice}</td>
+                                <td>${trade.quantity}</td>
+                                <td class="${parseFloat(trade.profit) >= 0 ? 'trade-buy' : 'trade-sell'}">
+                                    ${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}
+                                </td>
+                                <td class="${parseFloat(trade.profitPercentage) >= 0 ? 'trade-buy' : 'trade-sell'}">
+                                    ${trade.profitPercentage}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
         `;
         document.getElementById('content').innerHTML = tableHtml;
     } catch (error) {
