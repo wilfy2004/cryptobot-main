@@ -39,10 +39,23 @@
     text-align: center;
 }
 
+/* Add these styles to your existing styles.css - don't replace anything */
+
+/* Recent trades table styles */
 .data-table {
     width: 100%;
+    min-width: 800px;  /* Ensures table is scrollable on mobile */
     border-collapse: collapse;
+}
+
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     margin: 20px 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 10px;
 }
 
 .data-table td {
