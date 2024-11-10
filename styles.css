@@ -5,7 +5,7 @@
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     border: 1px solid #eee;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .coin-header {
@@ -18,7 +18,7 @@
 }
 
 .coin-symbol {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
     margin: 0;
     color: #333;
@@ -58,7 +58,7 @@
     background: #e3f2fd;
     padding: 8px 16px;
     border-radius: 6px;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .summary {
@@ -90,7 +90,7 @@
 
 .data-table td {
     padding: 16px;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 /* Optional: Styling for the timing information */
@@ -101,7 +101,7 @@
 
 .coin-state {
     color: #666;
-    font-size: 18px;
+    font-size: 14px;
     margin-left: auto;
 }
 
@@ -122,18 +122,18 @@
 
 .timing-row .label {
     color: #666;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .timing-row .time {
     color: #2196F3;
     font-weight: 500;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .timing-row .ago {
     color: #757575;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 #summary-stats {
@@ -142,11 +142,11 @@
     border-radius: 12px;
     margin-bottom: 24px;
     text-align: center;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 #summary-stats h2 {
-    font-size: 18px;
+    font-size: 14px;
     margin: 0 0 12px 0;
     padding-bottom: 12px;
 }
@@ -169,7 +169,7 @@
 
 .trade-timing-control button {
     transition: all 0.2s ease-in-out;
-    font-size: 18px;
+    font-size: 14px;
     padding: 20px 30px;
     margin: 12px 0;
     min-height: 60px;
@@ -207,7 +207,7 @@
     width: 100%;
     min-width: 800px;  /* Ensures table is scrollable on mobile */
     border-collapse: collapse;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .recent-trades-table th,
