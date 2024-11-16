@@ -124,44 +124,7 @@ async function executeManualSell() {
 }
 
 // Update the activeTrade template in the updateDashboard function
-function updateDashboard() {
-    try {
-        // ... existing dashboard fetch code ...
 
-        // Update the active trade template
-        const activeTradeHtml = activeTrade
-            ? `
-                <div class="active-trade-card">
-                    <h2>Active Trade</h2>
-                    <div class="trade-details">
-                        <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
-                        <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
-                        <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
-                        <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
-                        <p class="profit-loss ${activeTrade.profitPercent >= 0 ? 'profit' : 'loss'}">
-                            <strong>Current P/L:</strong> ${activeTrade.profitPercent.toFixed(2)}%
-                        </p>
-                    </div>
-                    <div class="trade-controls">
-                        <div class="control-buttons">
-                            <button onclick="handleExtendTime(120)" class="action-button extend-time">
-                                +2 Hours
-                            </button>
-                            <button onclick="executeManualSell()" class="action-button sell-button">
-                                Execute Sell
-                            </button>
-                        </div>
-                        <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-                    </div>
-                </div>
-                `
-            : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
-
-        document.getElementById('active-trade').innerHTML = activeTradeHtml;
-    } catch (error) {
-        console.error('Error updating dashboard:', error);
-    }
-}
 async function updateDashboard() {
     try {
         const accountInfo = await fetchData('/api/account-info');
@@ -182,24 +145,34 @@ async function updateDashboard() {
             <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
         `;
         
-        // Update active trade section with timing control
-// Inside updateDashboard function, in the activeTradeHtml template:
-const activeTradeHtml = activeTrade
-    ? `
-        <h2>Active Trade</h2>
-        <p>Symbol: ${activeTrade.symbol}</p>
-        <p>Entry Price: $${activeTrade.entryPrice}</p>
-        <p>Current Price: $${activeTrade.currentPrice}</p>
-        <p>Quantity: ${activeTrade.quantity}</p>
-        <div class="trade-timing-control">
-            <h3>Trade Timing Control</h3>
-            <p>Current Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-            <div class="timing-buttons">
-                <button onclick="handleExtendTime(120)" class="timing-button">+2 Hours</button>
-            </div>
-        </div>
-    `
-    : '<h2>No Active Trade</h2>';
+        // Updated active trade template with both extend time and sell buttons
+        const activeTradeHtml = activeTrade
+            ? `
+                <div class="active-trade-card">
+                    <h2>Active Trade</h2>
+                    <div class="trade-details">
+                        <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
+                        <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
+                        <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
+                        <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
+                        <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
+                            <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
+                        </p>
+                    </div>
+                    <div class="trade-controls">
+                        <div class="control-buttons">
+                            <button onclick="handleExtendTime(120)" class="action-button extend-time">
+                                +2 Hours
+                            </button>
+                            <button onclick="executeManualSell()" class="action-button sell-button">
+                                Execute Sell
+                            </button>
+                        </div>
+                        <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+                    </div>
+                </div>
+                `
+            : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
         
         document.getElementById('active-trade').innerHTML = activeTradeHtml;
     } catch (error) {
