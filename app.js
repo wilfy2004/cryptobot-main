@@ -145,7 +145,7 @@ async function updateDashboard() {
             <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
         `;
         
-        // Updated active trade template with both extend time and sell buttons
+        // Updated active trade template with time information
         const activeTradeHtml = activeTrade
             ? `
                 <div class="active-trade-card">
@@ -158,6 +158,12 @@ async function updateDashboard() {
                         <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
                             <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
                         </p>
+                        <div class="time-info">
+                            <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
+                            <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
+                            <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
+                            <p><strong>Trailing Stop Active:</strong> ${activeTrade.trailingStopActive ? 'Yes' : 'No'}</p>
+                        </div>
                     </div>
                     <div class="trade-controls">
                         <div class="control-buttons">
@@ -178,6 +184,15 @@ async function updateDashboard() {
     } catch (error) {
         console.error('Error updating dashboard:', error);
     }
+}
+
+// Add these helper functions for time formatting
+function formatMinutes(minutes) {
+    return minutes ? minutes.toFixed(1) : '0';
+}
+
+function formatHours(hours) {
+    return hours ? hours.toFixed(2) : '0';
 }
 
 function formatDuration(ms) {
