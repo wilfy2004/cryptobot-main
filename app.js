@@ -91,7 +91,77 @@ async function login(username, password) {
         alert('Login failed. Please try again.');
     }
 }
+// Add these functions to your existing app.js
 
+// Manual sell API call function
+async function executeManualSell() {
+    if (!confirm('Are you sure you want to immediately sell the current position?')) {
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/execute-sell`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to execute sell order');
+        }
+
+        const result = await response.json();
+        alert('Manual sell order executed successfully');
+        updateDashboard(); // Refresh the dashboard
+    } catch (error) {
+        console.error('Error executing manual sell:', error);
+        alert(`Failed to execute manual sell: ${error.message}`);
+    }
+}
+
+// Update the activeTrade template in the updateDashboard function
+function updateDashboard() {
+    try {
+        // ... existing dashboard fetch code ...
+
+        // Update the active trade template
+        const activeTradeHtml = activeTrade
+            ? `
+                <div class="active-trade-card">
+                    <h2>Active Trade</h2>
+                    <div class="trade-details">
+                        <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
+                        <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
+                        <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
+                        <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
+                        <p class="profit-loss ${activeTrade.profitPercent >= 0 ? 'profit' : 'loss'}">
+                            <strong>Current P/L:</strong> ${activeTrade.profitPercent.toFixed(2)}%
+                        </p>
+                    </div>
+                    <div class="trade-controls">
+                        <div class="control-buttons">
+                            <button onclick="handleExtendTime(120)" class="action-button extend-time">
+                                +2 Hours
+                            </button>
+                            <button onclick="executeManualSell()" class="action-button sell-button">
+                                Execute Sell
+                            </button>
+                        </div>
+                        <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+                    </div>
+                </div>
+                `
+            : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
+
+        document.getElementById('active-trade').innerHTML = activeTradeHtml;
+    } catch (error) {
+        console.error('Error updating dashboard:', error);
+    }
+}
 async function updateDashboard() {
     try {
         const accountInfo = await fetchData('/api/account-info');
