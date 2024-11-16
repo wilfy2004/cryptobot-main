@@ -373,7 +373,16 @@ h2 {
     .data-table {
         min-width: 800px;
     }
-
+    .control-buttons .action-button {
+        min-height: 48px;  /* Slightly smaller than general buttons but still touch-friendly */
+        font-size: 16px;   /* More balanced font size */
+        padding: 12px 20px;
+        margin-bottom: 10px;
+    }
+    
+    .active-trade-card {
+        padding: 16px;  /* Slightly reduced padding on mobile */
+    }
     /* Improve touch targets */
     button {
         min-height: 60px;
