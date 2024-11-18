@@ -67,7 +67,37 @@ function handleLogout() {
     localStorage.removeItem('auth_token');
     window.location.href = 'login.html';
 }
+async function toggleTrailingStop(disable) {
+    if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trailing stop?`)) {
+        return;
+    }
 
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/trailing-stop/control`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: disable ? 'DISABLE' : 'ENABLE'
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update trailing stop status');
+        }
+
+        const result = await response.json();
+        alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
+        updateDashboard(); // Refresh the dashboard
+    } catch (error) {
+        console.error('Error updating trailing stop:', error);
+        alert(`Failed to update trailing stop: ${error.message}`);
+    }
+}
 async function login(username, password) {
     try {
         const response = await fetch(`${API_URL}/api/login`, {
@@ -162,7 +192,7 @@ async function updateDashboard() {
                             <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
                             <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
                             <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                            <p><strong>Trailing Stop Active:</strong> ${activeTrade.trailingStopActive ? 'Yes' : 'No'}</p>
+                            <p><strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}</p>
                         </div>
                     </div>
                     <div class="trade-controls">
@@ -172,6 +202,12 @@ async function updateDashboard() {
                             </button>
                             <button onclick="executeManualSell()" class="action-button sell-button">
                                 Execute Sell
+                            </button>
+                            <button 
+                                onclick="toggleTrailingStop(${!activeTrade.trailingStopDisabled})" 
+                                class="action-button ${activeTrade.trailingStopDisabled ? 'enable-stop' : 'disable-stop'}"
+                            >
+                                ${activeTrade.trailingStopDisabled ? 'Enable' : 'Disable'} Trailing Stop
                             </button>
                         </div>
                         <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
