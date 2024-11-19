@@ -126,24 +126,53 @@ async function executeManualSell() {
 // Update the activeTrade template in the updateDashboard function
 
 async function updateDashboard() {
+    // Create a debug element at the top
+    const debugElement = document.createElement('div');
+    debugElement.style.backgroundColor = '#f0f0f0';
+    debugElement.style.padding = '10px';
+    debugElement.style.margin = '10px';
+    debugElement.style.border = '1px solid #ccc';
+    document.body.insertBefore(debugElement, document.body.firstChild);
+    
     try {
+        debugElement.innerHTML += '<p>Starting data fetch...</p>';
+        
         const accountInfo = await fetchData('/api/account-info');
+        debugElement.innerHTML += '<p>Got account info</p>';
+        
         const activeTrade = await fetchData('/api/active-trade');
+        debugElement.innerHTML += '<p>Got active trade</p>';
+        
         const performanceMetrics = await fetchData('/api/performance-metrics');
+        debugElement.innerHTML += '<p>Got performance metrics</p>';
         
-        document.getElementById('account-info').innerHTML = `
-            <h2>Account Info</h2>
-            <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-        `;
+        const accountInfoElement = document.getElementById('account-info');
+        const performanceMetricsElement = document.getElementById('performance-metrics');
+        const activeTradeElement = document.getElementById('active-trade');
         
-        document.getElementById('performance-metrics').innerHTML = `
-            <h2>Performance Metrics</h2>
-            <p>Total Trades: ${performanceMetrics.totalTrades}</p>
-            <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
-            <p>Total Profit: $${performanceMetrics.totalProfit}</p>
-            <p>Win Rate: ${performanceMetrics.winRate}%</p>
-            <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
-        `;
+        if (!accountInfoElement) debugElement.innerHTML += '<p style="color:red">account-info element missing!</p>';
+        if (!performanceMetricsElement) debugElement.innerHTML += '<p style="color:red">performance-metrics element missing!</p>';
+        if (!activeTradeElement) debugElement.innerHTML += '<p style="color:red">active-trade element missing!</p>';
+        
+        if (accountInfoElement) {
+            accountInfoElement.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            `;
+            debugElement.innerHTML += '<p>Updated account info</p>';
+        }
+        
+        if (performanceMetricsElement) {
+            performanceMetricsElement.innerHTML = `
+                <h2>Performance Metrics</h2>
+                <p>Total Trades: ${performanceMetrics.totalTrades}</p>
+                <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
+                <p>Total Profit: $${performanceMetrics.totalProfit}</p>
+                <p>Win Rate: ${performanceMetrics.winRate}%</p>
+                <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
+            `;
+            debugElement.innerHTML += '<p>Updated performance metrics</p>';
+        }
         
         // Updated active trade template with time information
         const activeTradeHtml = activeTrade
@@ -180,8 +209,18 @@ async function updateDashboard() {
                 `
             : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
         
-        document.getElementById('active-trade').innerHTML = activeTradeHtml;
+        if (activeTradeElement) {
+            activeTradeElement.innerHTML = activeTradeHtml;
+            debugElement.innerHTML += '<p>Updated active trade</p>';
+        }
+        
+        debugElement.innerHTML += '<p style="color:green">Dashboard update completed</p>';
+        
     } catch (error) {
+        debugElement.innerHTML += `
+            <p style="color:red">Error updating dashboard:</p>
+            <p style="color:red">${error.message}</p>
+        `;
         console.error('Error updating dashboard:', error);
     }
 }
