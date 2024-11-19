@@ -166,13 +166,21 @@ async function updateDashboard() {
             <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
         `;
         
+        // Updated to match new metric names from the database
         document.getElementById('performance-metrics').innerHTML = `
             <h2>Performance Metrics</h2>
             <p>Total Trades: ${performanceMetrics.totalTrades}</p>
             <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
-            <p>Total Profit: $${performanceMetrics.totalProfit}</p>
+            <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades}</p>
+            <div class="profit-section">
+                <p>Total Gains: $${performanceMetrics.totalGains}</p>
+                <p>Total Losses: $${performanceMetrics.totalLosses}</p>
+                <p class="net-profit" style="color: ${parseFloat(performanceMetrics.totalProfit) >= 0 ? 'green' : 'red'}">
+                    Net Profit: $${performanceMetrics.totalProfit}
+                </p>
+            </div>
             <p>Win Rate: ${performanceMetrics.winRate}%</p>
-            <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
+            <p>Average Profit: ${performanceMetrics.avgProfitPercentage}%</p>
         `;
         
         // Updated active trade template with time information
