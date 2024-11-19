@@ -161,14 +161,13 @@ async function updateDashboard() {
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
         
-        const accountInfoElement = document.getElementById('account-info');
-        const performanceMetricsElement = document.getElementById('performance-metrics');
-        const activeTradeElement = document.getElementById('active-trade');
-        
-        document.getElementById('account-info').innerHTML = `
-            <h2>Account Info</h2>
-            <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-        `;
+        // Update account info
+        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
+            accountInfoElement.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            `;
+        }
         
         // Update performance metrics
         if (performanceMetricsElement && performanceMetrics) {
@@ -183,18 +182,9 @@ async function updateDashboard() {
                 <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
                 <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
             `;
-        // Update account info
-        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
-            accountInfoElement.innerHTML = `
-                <h2>Account Info</h2>
-                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-            `;
+        }
         
-        
-
-        
-        
-        // Update active trade
+        // Update active trade section
         if (activeTradeElement) {
              const activeTradeHtml = activeTrade
             ? `
@@ -239,6 +229,11 @@ async function updateDashboard() {
         document.getElementById('active-trade').innerHTML = activeTradeHtml;
     } catch (error) {
         console.error('Error updating dashboard:', error);
+        // Add visible error handling for users
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = `Failed to update dashboard: ${error.message}`;
+        document.body.insertBefore(errorDiv, document.body.firstChild);
     }
 }
 // Add these helper functions for time formatting
