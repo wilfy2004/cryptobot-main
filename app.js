@@ -34,28 +34,23 @@ async function toggleTrailingStop(disable) {
 
     try {
         const token = localStorage.getItem('auth_token');
-        const payload = {
-            action: disable ? 'DISABLE' : 'ENABLE'
-        };
-        
-        console.log('Sending trailing stop request:', payload); // Debug log
-        
         const response = await fetch(`${API_URL}/api/trailing-stop/control`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                action: disable ? 'DISABLE' : 'ENABLE'
+            })
         });
 
-        const data = await response.json();
-        console.log('Trailing stop response:', data); // Debug log
-
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to update trailing stop status');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update trailing stop status');
         }
 
+        const result = await response.json();
         alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
         updateDashboard(); // Refresh the dashboard
     } catch (error) {
