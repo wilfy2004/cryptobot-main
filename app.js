@@ -165,13 +165,10 @@ async function updateDashboard() {
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
         
-        // Update account info
-        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
-            accountInfoElement.innerHTML = `
-                <h2>Account Info</h2>
-                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-            `;
-        }
+        document.getElementById('account-info').innerHTML = `
+            <h2>Account Info</h2>
+            <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+        `;
         
         // Update performance metrics
         if (performanceMetricsElement && performanceMetrics) {
@@ -186,7 +183,16 @@ async function updateDashboard() {
                 <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
                 <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
             `;
-        }
+        // Update account info
+        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
+            accountInfoElement.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            `;
+        
+        
+
+        
         
         // Update active trade
         if (activeTradeElement) {
