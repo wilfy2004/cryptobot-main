@@ -166,8 +166,6 @@ async function updateDashboard() {
             <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
         `;
         
-// Inside updateDashboard function, replace the performance-metrics section with:
-// In your updateDashboard function, replace just the performance metrics section with:
 
 document.getElementById('performance-metrics').innerHTML = `
     <h2>Performance Metrics</h2>
