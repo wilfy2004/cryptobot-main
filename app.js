@@ -161,19 +161,13 @@ async function updateDashboard() {
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
         
+        console.log('Performance Metrics:', performanceMetrics); // Add this debug line
+        
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
         
-        // Update account info
-        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
-            accountInfoElement.innerHTML = `
-                <h2>Account Info</h2>
-                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-            `;
-        }
-        
-        // Update performance metrics
+        // Update performance metrics - modified to match the exact API response format
         if (performanceMetricsElement && performanceMetrics) {
             performanceMetricsElement.innerHTML = `
                 <h2>Performance Metrics</h2>
@@ -181,11 +175,29 @@ async function updateDashboard() {
                 <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
                 <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
                 <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
-                <p>Total Gains: ${performanceMetrics.totalGains || 0}</p>
-                <p>Total Losses: ${performanceMetrics.totalLosses || 0}</p>
+                <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
+                <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
                 <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
                 <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
             `;
+        } else {
+            console.error('Performance metrics element not found or no data:', {
+                element: !!performanceMetricsElement,
+                data: performanceMetrics
+            });
+        }
+
+        // Update account info
+        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
+            accountInfoElement.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            `;
+        } else {
+            console.error('Account info element not found or no data:', {
+                element: !!accountInfoElement,
+                data: accountInfo
+            });
         }
         
         // Update active trade section
@@ -234,7 +246,6 @@ async function updateDashboard() {
         }
     } catch (error) {
         console.error('Error updating dashboard:', error);
-        // Add visible error handling for users
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
         errorDiv.textContent = `Failed to update dashboard: ${error.message}`;
