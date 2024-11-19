@@ -126,53 +126,85 @@ async function executeManualSell() {
 // Update the activeTrade template in the updateDashboard function
 
 async function updateDashboard() {
-    // Create a debug element at the top
-    const debugElement = document.createElement('div');
-    debugElement.style.backgroundColor = '#f0f0f0';
-    debugElement.style.padding = '10px';
-    debugElement.style.margin = '10px';
-    debugElement.style.border = '1px solid #ccc';
-    document.body.insertBefore(debugElement, document.body.firstChild);
+    // Create a debug element if it doesn't exist
+    let debugElement = document.getElementById('debug-panel');
+    if (!debugElement) {
+        debugElement = document.createElement('div');
+        debugElement.id = 'debug-panel';
+        debugElement.style.backgroundColor = '#f0f0f0';
+        debugElement.style.padding = '10px';
+        debugElement.style.margin = '10px';
+        debugElement.style.border = '1px solid #ccc';
+        debugElement.style.fontSize = '12px';
+        debugElement.style.fontFamily = 'monospace';
+        document.body.insertBefore(debugElement, document.body.firstChild);
+    }
     
     try {
-        debugElement.innerHTML += '<p>Starting data fetch...</p>';
+        debugElement.innerHTML = '<p>Starting data fetch...</p>';
         
+        // Fetch and log account info
         const accountInfo = await fetchData('/api/account-info');
-        debugElement.innerHTML += '<p>Got account info</p>';
+        debugElement.innerHTML += `<p>Account Info received: ${JSON.stringify(accountInfo)}</p>`;
+        
+        // Fetch and log performance metrics
+        const performanceMetrics = await fetchData('/api/performance-metrics');
+        debugElement.innerHTML += `<p>Performance Metrics received: ${JSON.stringify(performanceMetrics)}</p>`;
         
         const activeTrade = await fetchData('/api/active-trade');
-        debugElement.innerHTML += '<p>Got active trade</p>';
+        debugElement.innerHTML += `<p>Active Trade received: ${JSON.stringify(activeTrade)}</p>`;
         
-        const performanceMetrics = await fetchData('/api/performance-metrics');
-        debugElement.innerHTML += '<p>Got performance metrics</p>';
-        
+        // Get DOM elements and log their existence
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
         
-        if (!accountInfoElement) debugElement.innerHTML += '<p style="color:red">account-info element missing!</p>';
-        if (!performanceMetricsElement) debugElement.innerHTML += '<p style="color:red">performance-metrics element missing!</p>';
-        if (!activeTradeElement) debugElement.innerHTML += '<p style="color:red">active-trade element missing!</p>';
+        debugElement.innerHTML += `
+            <p>DOM Elements found:</p>
+            <p>- account-info: ${accountInfoElement ? 'Yes' : 'No'}</p>
+            <p>- performance-metrics: ${performanceMetricsElement ? 'Yes' : 'No'}</p>
+            <p>- active-trade: ${activeTradeElement ? 'Yes' : 'No'}</p>
+        `;
         
-        if (accountInfoElement) {
+        // Update account info with error handling
+        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
             accountInfoElement.innerHTML = `
                 <h2>Account Info</h2>
                 <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
-            debugElement.innerHTML += '<p>Updated account info</p>';
+            debugElement.innerHTML += '<p>Updated account info successfully</p>';
+        } else {
+            debugElement.innerHTML += `<p style="color:red">Failed to update account info: ${JSON.stringify(accountInfo)}</p>`;
         }
         
-        if (performanceMetricsElement) {
-            performanceMetricsElement.innerHTML = `
-                <h2>Performance Metrics</h2>
-                <p>Total Trades: ${performanceMetrics.totalTrades}</p>
-                <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
-                <p>Total Profit: $${performanceMetrics.totalProfit}</p>
-                <p>Win Rate: ${performanceMetrics.winRate}%</p>
-                <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
-            `;
-            debugElement.innerHTML += '<p>Updated performance metrics</p>';
+        // Update performance metrics with error handling
+        if (performanceMetricsElement && performanceMetrics) {
+            try {
+                performanceMetricsElement.innerHTML = `
+                    <h2>Performance Metrics</h2>
+                    <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
+                    <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
+                    <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
+                    <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
+                    <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
+                `;
+                debugElement.innerHTML += '<p>Updated performance metrics successfully</p>';
+            } catch (error) {
+                debugElement.innerHTML += `<p style="color:red">Error updating performance metrics: ${error.message}</p>`;
+            }
+        } else {
+            debugElement.innerHTML += `<p style="color:red">Failed to update performance metrics: ${JSON.stringify(performanceMetrics)}</p>`;
         }
+        
+    } catch (error) {
+        debugElement.innerHTML += `
+            <p style="color:red">Error updating dashboard:</p>
+            <p style="color:red">${error.message}</p>
+            <p style="color:red">Stack: ${error.stack}</p>
+        `;
+        console.error('Error updating dashboard:', error);
+    }
+}
         
         // Updated active trade template with time information
         const activeTradeHtml = activeTrade
