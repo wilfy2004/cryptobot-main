@@ -126,137 +126,78 @@ async function executeManualSell() {
 // Update the activeTrade template in the updateDashboard function
 
 async function updateDashboard() {
-    // Create a debug element if it doesn't exist
-    let debugElement = document.getElementById('debug-panel');
-    if (!debugElement) {
-        debugElement = document.createElement('div');
-        debugElement.id = 'debug-panel';
-        debugElement.style.backgroundColor = '#f0f0f0';
-        debugElement.style.padding = '10px';
-        debugElement.style.margin = '10px';
-        debugElement.style.border = '1px solid #ccc';
-        debugElement.style.fontSize = '12px';
-        debugElement.style.fontFamily = 'monospace';
-        document.body.insertBefore(debugElement, document.body.firstChild);
-    }
-    
     try {
-        debugElement.innerHTML = '<p>Starting data fetch...</p>';
-        
-        // Fetch and log account info
         const accountInfo = await fetchData('/api/account-info');
-        debugElement.innerHTML += `<p>Account Info received: ${JSON.stringify(accountInfo)}</p>`;
-        
-        // Fetch and log performance metrics
         const performanceMetrics = await fetchData('/api/performance-metrics');
-        debugElement.innerHTML += `<p>Performance Metrics received: ${JSON.stringify(performanceMetrics)}</p>`;
-        
         const activeTrade = await fetchData('/api/active-trade');
-        debugElement.innerHTML += `<p>Active Trade received: ${JSON.stringify(activeTrade)}</p>`;
         
-        // Get DOM elements and log their existence
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
         
-        debugElement.innerHTML += `
-            <p>DOM Elements found:</p>
-            <p>- account-info: ${accountInfoElement ? 'Yes' : 'No'}</p>
-            <p>- performance-metrics: ${performanceMetricsElement ? 'Yes' : 'No'}</p>
-            <p>- active-trade: ${activeTradeElement ? 'Yes' : 'No'}</p>
-        `;
-        
-        // Update account info with error handling
+        // Update account info
         if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
             accountInfoElement.innerHTML = `
                 <h2>Account Info</h2>
                 <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
-            debugElement.innerHTML += '<p>Updated account info successfully</p>';
-        } else {
-            debugElement.innerHTML += `<p style="color:red">Failed to update account info: ${JSON.stringify(accountInfo)}</p>`;
         }
         
-        // Update performance metrics with error handling
+        // Update performance metrics
         if (performanceMetricsElement && performanceMetrics) {
-            try {
-                performanceMetricsElement.innerHTML = `
-                    <h2>Performance Metrics</h2>
-                    <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
-                    <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
-                    <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
-                    <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
-                    <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
-                `;
-                debugElement.innerHTML += '<p>Updated performance metrics successfully</p>';
-            } catch (error) {
-                debugElement.innerHTML += `<p style="color:red">Error updating performance metrics: ${error.message}</p>`;
-            }
-        } else {
-            debugElement.innerHTML += `<p style="color:red">Failed to update performance metrics: ${JSON.stringify(performanceMetrics)}</p>`;
+            performanceMetricsElement.innerHTML = `
+                <h2>Performance Metrics</h2>
+                <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
+                <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
+                <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
+                <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
+                <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
+            `;
         }
         
-    } catch (error) {
-        debugElement.innerHTML += `
-            <p style="color:red">Error updating dashboard:</p>
-            <p style="color:red">${error.message}</p>
-            <p style="color:red">Stack: ${error.stack}</p>
-        `;
-        console.error('Error updating dashboard:', error);
-    }
-}
-        
-        // Updated active trade template with time information
-        const activeTradeHtml = activeTrade
-            ? `
-                <div class="active-trade-card">
-                    <h2>Active Trade</h2>
-                    <div class="trade-details">
-                        <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
-                        <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
-                        <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
-                        <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
-                        <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
-                            <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
-                        </p>
-                        <div class="time-info">
-                            <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
-                            <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
-                            <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                            <p><strong>Trailing Stop Active:</strong> ${activeTrade.trailingStopActive ? 'Yes' : 'No'}</p>
-                        </div>
-                    </div>
-                    <div class="trade-controls">
-                        <div class="control-buttons">
-                            <button onclick="handleExtendTime(120)" class="action-button extend-time">
-                                +2 Hours
-                            </button>
-                            <button onclick="executeManualSell()" class="action-button sell-button">
-                                Execute Sell
-                            </button>
-                        </div>
-                        <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-                    </div>
-                </div>
-                `
-            : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
-        
+        // Update active trade
         if (activeTradeElement) {
+            const activeTradeHtml = activeTrade
+                ? `
+                    <div class="active-trade-card">
+                        <h2>Active Trade</h2>
+                        <div class="trade-details">
+                            <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
+                            <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
+                            <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
+                            <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
+                            <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
+                                <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
+                            </p>
+                            <div class="time-info">
+                                <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
+                                <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
+                                <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
+                                <p><strong>Trailing Stop Active:</strong> ${activeTrade.trailingStopActive ? 'Yes' : 'No'}</p>
+                            </div>
+                        </div>
+                        <div class="trade-controls">
+                            <div class="control-buttons">
+                                <button onclick="handleExtendTime(120)" class="action-button extend-time">
+                                    +2 Hours
+                                </button>
+                                <button onclick="executeManualSell()" class="action-button sell-button">
+                                    Execute Sell
+                                </button>
+                            </div>
+                            <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+                        </div>
+                    </div>
+                    `
+                : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
+            
             activeTradeElement.innerHTML = activeTradeHtml;
-            debugElement.innerHTML += '<p>Updated active trade</p>';
         }
         
-        debugElement.innerHTML += '<p style="color:green">Dashboard update completed</p>';
-        
     } catch (error) {
-        debugElement.innerHTML += `
-            <p style="color:red">Error updating dashboard:</p>
-            <p style="color:red">${error.message}</p>
-        `;
         console.error('Error updating dashboard:', error);
     }
 }
-
 // Add these helper functions for time formatting
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
