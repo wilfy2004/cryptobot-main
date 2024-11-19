@@ -179,7 +179,10 @@ async function updateDashboard() {
                 <h2>Performance Metrics</h2>
                 <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
                 <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
+                <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
                 <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
+                <p>Total Gains: ${performanceMetrics.totalGains || 0}</p>
+                <p>Total Losses: ${performanceMetrics.totalLosses || 0}</p>
                 <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
                 <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
             `;
