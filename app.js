@@ -167,20 +167,20 @@ async function updateDashboard() {
         `;
         
 // Inside updateDashboard function, replace the performance-metrics section with:
+// In your updateDashboard function, replace just the performance metrics section with:
+
 document.getElementById('performance-metrics').innerHTML = `
     <h2>Performance Metrics</h2>
-    <div class="metrics-section">
-        <p>Total Trades: ${performanceMetrics.totalTrades}</p>
-        <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
-        <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades}</p>
-        <p>Total Gains: ${performanceMetrics.totalGains} USDT</p>
-        <p>Total Losses: ${performanceMetrics.totalLosses} USDT</p>
-        <p style="color: ${parseFloat(performanceMetrics.totalProfit) >= 0 ? 'green' : 'red'}">
-            Net Profit: ${performanceMetrics.totalProfit} USDT
-        </p>
-        <p>Win Rate: ${performanceMetrics.winRate}%</p>
-        <p>Average Profit: ${performanceMetrics.avgProfitPercentage}%</p>
-    </div>
+    <p>Total Trades: ${performanceMetrics.totalTrades}</p>
+    <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
+    <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades}</p>
+    <p>Total Gains: ${performanceMetrics.totalGains} USDT</p>
+    <p>Total Losses: ${performanceMetrics.totalLosses} USDT</p>
+    <p style="color: ${performanceMetrics.totalProfit >= 0 ? 'green' : 'red'}">
+        Net Profit: ${performanceMetrics.totalProfit} USDT
+    </p>
+    <p>Win Rate: ${performanceMetrics.winRate}%</p>
+    <p>Average Profit: ${performanceMetrics.avgProfitPercentage.toFixed(2)}%</p>
 `;
         
         // Updated active trade template with time information
