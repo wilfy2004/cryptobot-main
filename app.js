@@ -166,22 +166,22 @@ async function updateDashboard() {
             <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
         `;
         
-        // Updated to match new metric names from the database
-        document.getElementById('performance-metrics').innerHTML = `
-            <h2>Performance Metrics</h2>
-            <p>Total Trades: ${performanceMetrics.totalTrades}</p>
-            <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
-            <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades}</p>
-            <div class="profit-section">
-                <p>Total Gains: $${performanceMetrics.totalGains}</p>
-                <p>Total Losses: $${performanceMetrics.totalLosses}</p>
-                <p class="net-profit" style="color: ${parseFloat(performanceMetrics.totalProfit) >= 0 ? 'green' : 'red'}">
-                    Net Profit: $${performanceMetrics.totalProfit}
-                </p>
-            </div>
-            <p>Win Rate: ${performanceMetrics.winRate}%</p>
-            <p>Average Profit: ${performanceMetrics.avgProfitPercentage}%</p>
-        `;
+// Inside updateDashboard function, replace the performance-metrics section with:
+document.getElementById('performance-metrics').innerHTML = `
+    <h2>Performance Metrics</h2>
+    <div class="metrics-section">
+        <p>Total Trades: ${performanceMetrics.totalTrades}</p>
+        <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
+        <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades}</p>
+        <p>Total Gains: ${performanceMetrics.totalGains} USDT</p>
+        <p>Total Losses: ${performanceMetrics.totalLosses} USDT</p>
+        <p style="color: ${parseFloat(performanceMetrics.totalProfit) >= 0 ? 'green' : 'red'}">
+            Net Profit: ${performanceMetrics.totalProfit} USDT
+        </p>
+        <p>Win Rate: ${performanceMetrics.winRate}%</p>
+        <p>Average Profit: ${performanceMetrics.avgProfitPercentage}%</p>
+    </div>
+`;
         
         // Updated active trade template with time information
         const activeTradeHtml = activeTrade
