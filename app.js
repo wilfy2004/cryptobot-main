@@ -166,18 +166,15 @@ async function updateDashboard() {
             <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
         `;
         
-
-document.getElementById('performance-metrics').innerHTML = `
-    <h2>Performance Metrics</h2>
-    <p>Total Trades: ${performanceMetrics.totalTrades}</p>
-    <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
-    <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades}</p>
-    <p>Total Profit: ${performanceMetrics.totalProfit} USDT</p>
-    <p>Win Rate: ${performanceMetrics.winRate}%</p>
-    <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage.toFixed(2)}%</p>
-`;
+        document.getElementById('performance-metrics').innerHTML = `
+            <h2>Performance Metrics</h2>
+            <p>Total Trades: ${performanceMetrics.totalTrades}</p>
+            <p>Profitable Trades: ${performanceMetrics.profitableTrades}</p>
+            <p>Total Profit: $${performanceMetrics.totalProfit}</p>
+            <p>Win Rate: ${performanceMetrics.winRate}%</p>
+            <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage}%</p>
+        `;
         
-        // Updated active trade template with time information
         const activeTradeHtml = activeTrade
             ? `
                 <div class="active-trade-card">
