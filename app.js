@@ -157,6 +157,24 @@ async function executeManualSell() {
 
 async function updateDashboard() {
     try {
+                // Add visible error display for mobile
+        const debugDiv = document.createElement('div');
+        debugDiv.style.backgroundColor = '#fff3cd';
+        debugDiv.style.padding = '10px';
+        debugDiv.style.margin = '10px';
+        document.body.insertBefore(debugDiv, document.body.firstChild);
+
+        debugDiv.innerHTML = 'Starting data fetch...';
+
+        const accountInfo = await fetchData('/api/account-info');
+        debugDiv.innerHTML += '<br>Got account info';
+
+        const activeTrade = await fetchData('/api/active-trade');
+        debugDiv.innerHTML += '<br>Got active trade';
+
+        const performanceMetrics = await fetchData('/api/performance-metrics');
+        debugDiv.innerHTML += '<br>Got performance metrics: ' + JSON.stringify(performanceMetrics);
+
         const accountInfo = await fetchData('/api/account-info');
         const activeTrade = await fetchData('/api/active-trade');
         const performanceMetrics = await fetchData('/api/performance-metrics');
