@@ -28,12 +28,20 @@ async function fetchData(endpoint) {
 }
 // Add this debugging code to the toggleTrailingStop function
 async function toggleTrailingStop(disable) {
+    // Alert the current action being attempted
+    alert(`Current state: ${disable ? 'Attempting to disable' : 'Attempting to enable'}`);
+
     if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trailing stop?`)) {
         return;
     }
 
     try {
         const token = localStorage.getItem('auth_token');
+        const action = disable ? 'DISABLE' : 'ENABLE';
+        
+        // Alert the action being sent
+        alert(`Sending action: ${action}`);
+        
         const response = await fetch(`${API_URL}/api/trailing-stop/control`, {
             method: 'POST',
             headers: {
@@ -41,21 +49,20 @@ async function toggleTrailingStop(disable) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                action: disable ? 'DISABLE' : 'ENABLE'
+                action: action
             })
         });
 
+        const result = await response.json();
+        
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update trailing stop status');
+            throw new Error(result.error || 'Failed to update trailing stop status');
         }
 
-        const result = await response.json();
         alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
-        await updateDashboard(); // Added await here
+        await updateDashboard(); // Make sure to wait for the dashboard update
     } catch (error) {
-        console.error('Error updating trailing stop:', error);
-        alert(`Failed to update trailing stop: ${error.message}`);
+        alert(`Error in toggle: ${error.message}`);
     }
 }
 // Trade timing control functions
@@ -233,7 +240,7 @@ async function updateDashboard() {
                         Execute Sell
                     </button>
                     <button 
-                        onclick="toggleTrailingStop(${!activeTrade.trailingStopDisabled})" 
+                        onclick="toggleTrailingStop(${activeTrade.trailingStopDisabled === true ? false : true})" 
                         class="action-button ${activeTrade.trailingStopDisabled ? 'enable-stop' : 'disable-stop'}"
                     >
                         ${activeTrade.trailingStopDisabled ? 'Enable Trailing Stop' : 'Disable Trailing Stop'}
