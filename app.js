@@ -58,6 +58,65 @@ async function toggleTrailingStop(disable) {
         alert(`Failed to update trailing stop: ${error.message}`);
     }
 }
+
+async function toggleBot(disable) {
+    if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trading bot?`)) {
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/bot/control`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: disable ? 'DISABLE' : 'ENABLE'
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update bot status');
+        }
+
+        const result = await response.json();
+        alert(`Bot ${disable ? 'disabled' : 'enabled'} successfully`);
+        await updateDashboard();
+    } catch (error) {
+        console.error('Error updating bot status:', error);
+        alert(`Failed to update bot status: ${error.message}`);
+    }
+}
+
+// Add this function to fetch bot status
+async function getBotStatus() {
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/bot/control`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'STATUS'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to get bot status');
+        }
+
+        const result = await response.json();
+        return result.status === 'enabled';
+    } catch (error) {
+        console.error('Error getting bot status:', error);
+        return null;
+    }
+}
 // Trade timing control functions
 async function updateTradeTiming(minutes) {
     try {
@@ -201,48 +260,59 @@ async function updateDashboard() {
         // Update active trade section
         if (activeTradeElement) {
             const activeTradeHtml = activeTrade
-    ? `
-        <div class="active-trade-card">
-            <h2>Active Trade</h2>
-            <div class="trade-details">
-                <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
-                <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
-                <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
-                <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
-                <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
-                    <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
-                </p>
-                <div class="time-info">
-                    <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
-                    <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
-                    <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                    <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
-                        <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
-                    </p>
-                </div>
-            </div>
-            <div class="trade-controls">
-                <div class="control-buttons">
-                    <button onclick="handleExtendTime(120)" class="action-button extend-time">
-                        +2 Hours
-                    </button>
-                    <button onclick="executeManualSell()" class="action-button sell-button">
-                        Execute Sell
-                    </button>
-                    ${activeTrade.trailingStopDisabled ? 
-                        `<button onclick="toggleTrailingStop(false)" class="action-button enable-stop">
-                            Enable Trailing Stop
-                         </button>` :
-                        `<button onclick="toggleTrailingStop(true)" class="action-button disable-stop">
-                            Disable Trailing Stop
-                         </button>`
-                }
-            </div>
-            <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-        </div>
-        </div>
-        `
-    : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
+                ? `
+                    <div class="active-trade-card">
+                        <h2>Active Trade</h2>
+                        <div class="trade-details">
+                            <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
+                            <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
+                            <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
+                            <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
+                            <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
+                                <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
+                            </p>
+                            <div class="time-info">
+                                <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
+                                <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
+                                <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
+                                <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
+                                    <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
+                                </p>
+                                <p class="${activeTrade.botEnabled ? 'success-text' : 'warning-text'}">
+                                    <strong>Bot Status:</strong> ${activeTrade.botEnabled ? 'Active' : 'Disabled'}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="trade-controls">
+                            <div class="control-buttons">
+                                <button onclick="handleExtendTime(120)" class="action-button extend-time">
+                                    +2 Hours
+                                </button>
+                                <button onclick="executeManualSell()" class="action-button sell-button">
+                                    Execute Sell
+                                </button>
+                                ${activeTrade.trailingStopDisabled ? 
+                                    `<button onclick="toggleTrailingStop(false)" class="action-button enable-stop">
+                                        Enable Trailing Stop
+                                     </button>` :
+                                    `<button onclick="toggleTrailingStop(true)" class="action-button disable-stop">
+                                        Disable Trailing Stop
+                                     </button>`
+                                }
+                                ${activeTrade.botEnabled ? 
+                                    `<button onclick="toggleBot(true)" class="action-button disable-stop">
+                                        Disable Bot
+                                     </button>` :
+                                    `<button onclick="toggleBot(false)" class="action-button enable-stop">
+                                        Enable Bot
+                                     </button>`
+                                }
+                            </div>
+                            <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+                        </div>
+                    </div>
+                    `
+                : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
             
             activeTradeElement.innerHTML = activeTradeHtml;
         }
