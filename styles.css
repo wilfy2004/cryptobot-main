@@ -16,7 +16,30 @@
     padding-bottom: 12px;
     border-bottom: 1px solid #eee;
 }
+/* Add these styles to your existing CSS */
+.warning-text {
+    color: #ff6b6b;
+    font-weight: bold;
+}
 
+.success-text {
+    color: #51cf66;
+    font-weight: bold;
+}
+
+.enable-stop {
+    background-color: #51cf66 !important;
+    color: white !important;
+}
+
+.disable-stop {
+    background-color: #ff6b6b !important;
+    color: white !important;
+}
+
+.action-button:hover {
+    opacity: 0.9;
+}
 .coin-symbol {
     font-size: 14px;
     font-weight: bold;
