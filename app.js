@@ -52,7 +52,7 @@ async function toggleTrailingStop(disable) {
 
         const result = await response.json();
         alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
-        updateDashboard(); // Refresh the dashboard
+        await updateDashboard(); // Added await here
     } catch (error) {
         console.error('Error updating trailing stop:', error);
         alert(`Failed to update trailing stop: ${error.message}`);
@@ -204,44 +204,46 @@ async function updateDashboard() {
         // Update active trade section
         if (activeTradeElement) {
             const activeTradeHtml = activeTrade
-                ? `
-                    <div class="active-trade-card">
-                        <h2>Active Trade</h2>
-                        <div class="trade-details">
-                            <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
-                            <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
-                            <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
-                            <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
-                            <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
-                                <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
-                            </p>
-                            <div class="time-info">
-                                <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
-                                <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
-                                <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                                <p><strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}</p>
-                            </div>
-                        </div>
-                        <div class="trade-controls">
-                            <div class="control-buttons">
-                                <button onclick="handleExtendTime(120)" class="action-button extend-time">
-                                    +2 Hours
-                                </button>
-                                <button onclick="executeManualSell()" class="action-button sell-button">
-                                    Execute Sell
-                                </button>
-                                <button 
-                                    onclick="toggleTrailingStop(${!activeTrade.trailingStopDisabled})" 
-                                    class="action-button ${activeTrade.trailingStopDisabled ? 'enable-stop' : 'disable-stop'}"
-                                >
-                                    ${activeTrade.trailingStopDisabled ? 'Enable' : 'Disable'} Trailing Stop
-                                </button>
-                            </div>
-                            <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-                        </div>
-                    </div>
-                    `
-                : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
+    ? `
+        <div class="active-trade-card">
+            <h2>Active Trade</h2>
+            <div class="trade-details">
+                <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
+                <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
+                <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
+                <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
+                <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
+                    <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
+                </p>
+                <div class="time-info">
+                    <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
+                    <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
+                    <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
+                    <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
+                        <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
+                    </p>
+                </div>
+            </div>
+            <div class="trade-controls">
+                <div class="control-buttons">
+                    <button onclick="handleExtendTime(120)" class="action-button extend-time">
+                        +2 Hours
+                    </button>
+                    <button onclick="executeManualSell()" class="action-button sell-button">
+                        Execute Sell
+                    </button>
+                    <button 
+                        onclick="toggleTrailingStop(${!activeTrade.trailingStopDisabled})" 
+                        class="action-button ${activeTrade.trailingStopDisabled ? 'enable-stop' : 'disable-stop'}"
+                    >
+                        ${activeTrade.trailingStopDisabled ? 'Enable Trailing Stop' : 'Disable Trailing Stop'}
+                    </button>
+                </div>
+                <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+            </div>
+        </div>
+        `
+    : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
             
             activeTradeElement.innerHTML = activeTradeHtml;
         }
