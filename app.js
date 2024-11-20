@@ -34,10 +34,6 @@ async function toggleTrailingStop(disable) {
 
     try {
         const token = localStorage.getItem('auth_token');
-        const action = disable ? 'DISABLE' : 'ENABLE';
-        
-        alert('Sending action: ' + action); // Debug alert
-        
         const response = await fetch(`${API_URL}/api/trailing-stop/control`, {
             method: 'POST',
             headers: {
@@ -45,17 +41,16 @@ async function toggleTrailingStop(disable) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                action: action
+                action: disable ? 'DISABLE' : 'ENABLE'
             })
         });
 
-        const result = await response.json();
-        alert('API Response: ' + JSON.stringify(result)); // Debug alert
-
         if (!response.ok) {
-            throw new Error(result.error || 'Failed to update trailing stop status');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update trailing stop status');
         }
 
+        const result = await response.json();
         alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
         await updateDashboard();
     } catch (error) {
@@ -166,10 +161,6 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
-        
-        console.log('Performance Metrics:', performanceMetrics); // Add this debug line
-                // Add this debug alert
-        alert('Active trade state: ' + JSON.stringify(activeTrade));
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
