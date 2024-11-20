@@ -28,14 +28,16 @@ async function fetchData(endpoint) {
 }
 // Add this debugging code to the toggleTrailingStop function
 async function toggleTrailingStop(disable) {
-    const action = disable ? 'DISABLE' : 'ENABLE';
-    
-    if (!confirm(`Are you sure you want to ${action.toLowerCase()} the trailing stop?`)) {
+    if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trailing stop?`)) {
         return;
     }
 
     try {
         const token = localStorage.getItem('auth_token');
+        const action = disable ? 'DISABLE' : 'ENABLE';
+        
+        alert('Sending action: ' + action); // Debug alert
+        
         const response = await fetch(`${API_URL}/api/trailing-stop/control`, {
             method: 'POST',
             headers: {
@@ -47,14 +49,15 @@ async function toggleTrailingStop(disable) {
             })
         });
 
+        const result = await response.json();
+        alert('API Response: ' + JSON.stringify(result)); // Debug alert
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update trailing stop status');
+            throw new Error(result.error || 'Failed to update trailing stop status');
         }
 
-        const result = await response.json();
-        alert(`Trailing stop ${action.toLowerCase()}d successfully`);
-        await updateDashboard(); // Refresh the dashboard
+        alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
+        await updateDashboard();
     } catch (error) {
         console.error('Error updating trailing stop:', error);
         alert(`Failed to update trailing stop: ${error.message}`);
@@ -165,7 +168,8 @@ async function updateDashboard() {
         const activeTrade = await fetchData('/api/active-trade');
         
         console.log('Performance Metrics:', performanceMetrics); // Add this debug line
-        
+                // Add this debug alert
+        alert('Active trade state: ' + JSON.stringify(activeTrade));
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
