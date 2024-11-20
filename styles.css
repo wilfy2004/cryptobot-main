@@ -36,7 +36,16 @@
     background-color: #ff6b6b !important;
     color: white !important;
 }
+/* Add to your existing CSS */
+.bot-enabled {
+    background-color: #51cf66 !important;
+    color: white !important;
+}
 
+.bot-disabled {
+    background-color: #ff6b6b !important;
+    color: white !important;
+}
 .action-button:hover {
     opacity: 0.9;
 }
