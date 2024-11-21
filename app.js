@@ -59,64 +59,6 @@ async function toggleTrailingStop(disable) {
     }
 }
 
-async function toggleBot(disable) {
-    if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trading bot?`)) {
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/bot/control`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: disable ? 'DISABLE' : 'ENABLE'
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update bot status');
-        }
-
-        const result = await response.json();
-        alert(`Bot ${disable ? 'disabled' : 'enabled'} successfully`);
-        await updateDashboard();
-    } catch (error) {
-        console.error('Error updating bot status:', error);
-        alert(`Failed to update bot status: ${error.message}`);
-    }
-}
-
-// Add this function to fetch bot status
-async function getBotStatus() {
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/bot/control`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'STATUS'
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to get bot status');
-        }
-
-        const result = await response.json();
-        return result.status === 'enabled';
-    } catch (error) {
-        console.error('Error getting bot status:', error);
-        return null;
-    }
-}
 // Trade timing control functions
 async function updateTradeTiming(minutes) {
     try {
