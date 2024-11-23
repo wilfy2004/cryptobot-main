@@ -190,9 +190,9 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
-        console.log('Fetching bot status...');
-        const botStatus = await fetchData('/api/bot-control');
-        console.log('Bot status response:', botStatus);
+        //console.log('Fetching bot status...');
+        //const botStatus = await fetchData('/api/bot-control');
+     //   console.log('Bot status response:', botStatus);
 
         // Get all elements at once and check they exist
         const elements = {
@@ -204,22 +204,22 @@ async function updateDashboard() {
 
         // Update bot control section
 // Update bot control section
-if (elements.botControl) {
-    const currentState = botStatus?.currentState || 'active';
-    console.log('Current bot state:', currentState); // Add this debug line
-    elements.botControl.innerHTML = `
-        <div class="bot-control-card">
-            <h2>Bot Control</h2>
-            <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
-                Current Status: ${currentState.toUpperCase()}
-            </div>
-            <button onclick="toggleBot(${currentState === 'active'})" 
-                    class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
-            </button>
-        </div>
-    `;
-}
+//if (elements.botControl) {
+//    const currentState = botStatus?.currentState || 'active';
+//    console.log('Current bot state:', currentState); // Add this debug line
+//    elements.botControl.innerHTML = `
+//        <div class="bot-control-card">
+ //           <h2>Bot Control</h2>
+ //            <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
+ //                Current Status: ${currentState.toUpperCase()}
+ //            </div>
+ //            <button onclick="toggleBot(${currentState === 'active'})" 
+  //                   class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+ //                ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
+  //           </button>
+ //        </div>
+ //    `;
+ //}
 
         // Update performance metrics
         if (elements.performanceMetrics && performanceMetrics) {
