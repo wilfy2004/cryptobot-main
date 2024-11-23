@@ -190,7 +190,9 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
-        const botStatus = { currentState: 'active' };
+        console.log('Fetching bot status...');
+        const botStatus = await fetchData('/api/bot-control');
+        console.log('Bot status response:', botStatus);
 
         // Get all elements at once and check they exist
         const elements = {
