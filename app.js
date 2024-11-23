@@ -33,7 +33,7 @@ async function toggleBot(pause) {
 
     try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/bot/control`, {
+        const response = await fetch(`${API_URL}/api/bot-control`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -190,7 +190,7 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
-        const botStatus = await fetchData('/bot/control');
+       const botStatus = await fetchData('/api/bot-control');
 
         // Get all elements at once and check they exist
         const elements = {
