@@ -192,9 +192,10 @@ async function executeManualSell() {
 async function updateDashboard() {
     try {
         const accountInfo = await fetchData('/api/account-info');
-       const performanceMetrics = await fetchData('/api/performance-metrics');
+        const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
         const botStatus = await fetchData('/bot/control');
+        
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
@@ -289,8 +290,6 @@ async function updateDashboard() {
             activeTradeElement.innerHTML = activeTradeHtml;
         }
 
-        
-
     } catch (error) {
         console.error('Error updating dashboard:', error);
         const errorDiv = document.createElement('div');
@@ -298,6 +297,7 @@ async function updateDashboard() {
         errorDiv.textContent = `Failed to update dashboard: ${error.message}`;
         document.body.insertBefore(errorDiv, document.body.firstChild);
     }
+}
 // Add these helper functions for time formatting
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
