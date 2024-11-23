@@ -26,7 +26,37 @@ async function fetchData(endpoint) {
     
     return response.json();
 }
+async function toggleBot(pause) {
+    if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
+        return;
+    }
 
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/bot/control`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                command: pause ? 'pause' : 'resume'
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update bot status');
+        }
+
+        const result = await response.json();
+        alert(`Bot ${pause ? 'paused' : 'resumed'} successfully`);
+        await updateDashboard();
+    } catch (error) {
+        console.error('Error updating bot status:', error);
+        alert(`Failed to update bot status: ${error.message}`);
+    }
+}
 async function toggleTrailingStop(disable) {
     if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trailing stop?`)) {
         return;
@@ -187,7 +217,21 @@ async function updateDashboard() {
                 <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
         }
-        
+         if (botControlElement) {
+            const currentState = botStatus?.currentState || 'active';
+            botControlElement.innerHTML = `
+                <div class="bot-control-card">
+                    <h2>Bot Control</h2>
+                    <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
+                        Current Status: ${currentState.toUpperCase()}
+                    </div>
+                    <button onclick="toggleBot(${currentState === 'active'})" 
+                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                        ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
+                    </button>
+                </div>
+            `;
+        }
         // Update active trade section
         if (activeTradeElement) {
             const activeTradeHtml = activeTrade
