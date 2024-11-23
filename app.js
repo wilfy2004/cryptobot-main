@@ -138,17 +138,21 @@ async function executeManualSell() {
             }
         });
 
+        const responseData = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to execute sell order');
+            throw new Error(responseData.error || 'Failed to execute sell order');
         }
 
-        const result = await response.json();
         alert('Manual sell order executed successfully');
-        updateDashboard(); // Refresh the dashboard
+        await updateDashboard(); // Refresh the dashboard
     } catch (error) {
         console.error('Error executing manual sell:', error);
-        alert(`Failed to execute manual sell: ${error.message}`);
+        
+        // Only show error if the sell actually failed
+        if (!error.message.includes('body used already')) {
+            alert(`Failed to execute manual sell: ${error.message}`);
+        }
     }
 }
 async function updateDashboard() {
