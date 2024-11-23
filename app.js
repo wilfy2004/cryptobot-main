@@ -26,6 +26,37 @@ async function fetchData(endpoint) {
     
     return response.json();
 }
+async function toggleBot(pause) {
+    if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/bot/control`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                command: pause ? 'pause' : 'resume'
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update bot status');
+        }
+
+        const result = await response.json();
+        alert(`Bot ${pause ? 'paused' : 'resumed'} successfully`);
+        await updateDashboard();
+    } catch (error) {
+        console.error('Error updating bot status:', error);
+        alert(`Failed to update bot status: ${error.message}`);
+    }
+}
 // Add this debugging code to the toggleTrailingStop function
 async function toggleTrailingStop(disable) {
     if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trailing stop?`)) {
@@ -162,10 +193,28 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
+        const botStatus = await fetchData('/bot/control');  // Add this line to fetch bot status
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
         
+        // Add bot control section
+        const botControlElement = document.getElementById('bot-control');
+        if (botControlElement) {  // Removed botStatus check since we handle undefined case
+            const currentState = botStatus?.currentState || 'active';  // Default to active if status undefined
+            botControlElement.innerHTML = `
+                <div class="bot-control-card">
+                    <h2>Bot Control</h2>
+                    <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
+                        Current Status: ${currentState.toUpperCase()}
+                    </div>
+                    <button onclick="toggleBot(${currentState === 'active'})" 
+                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                        ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
+                    </button>
+                </div>
+            `;
+        }
         // Update performance metrics - modified to match the exact API response format
         if (performanceMetricsElement && performanceMetrics) {
             performanceMetricsElement.innerHTML = `
@@ -220,9 +269,6 @@ async function updateDashboard() {
                                 <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
                                     <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
                                 </p>
-                                <p class="${activeTrade.botEnabled ? 'success-text' : 'warning-text'}">
-                                    <strong>Bot Status:</strong> ${activeTrade.botEnabled ? 'Active' : 'Disabled'}
-                                </p>
                             </div>
                         </div>
                         <div class="trade-controls">
@@ -239,14 +285,6 @@ async function updateDashboard() {
                                      </button>` :
                                     `<button onclick="toggleTrailingStop(true)" class="action-button disable-stop">
                                         Disable Trailing Stop
-                                     </button>`
-                                }
-                                ${activeTrade.botEnabled ? 
-                                    `<button onclick="toggleBot(true)" class="action-button disable-stop">
-                                        Disable Bot
-                                     </button>` :
-                                    `<button onclick="toggleBot(false)" class="action-button enable-stop">
-                                        Enable Bot
                                      </button>`
                                 }
                             </div>
