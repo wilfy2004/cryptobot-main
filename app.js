@@ -27,42 +27,6 @@ async function fetchData(endpoint) {
     return response.json();
 }
 
-function showDebugMessage(message, type = 'info') {
-    const debugPanel = document.getElementById('debug-panel') || (() => {
-        const panel = document.createElement('div');
-        panel.id = 'debug-panel';
-        panel.style.cssText = `
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-height: 30vh;
-            overflow-y: auto;
-            background: white;
-            padding: 10px;
-            border-top: 2px solid #ccc;
-            font-size: 12px;
-            z-index: 9999;
-        `;
-        document.body.appendChild(panel);
-        return panel;
-    })();
-
-    const msgElement = document.createElement('div');
-    msgElement.style.cssText = `
-        margin: 2px 0;
-        padding: 2px 5px;
-        border-left: 3px solid ${type === 'error' ? 'red' : 'blue'};
-    `;
-    msgElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-    debugPanel.insertBefore(msgElement, debugPanel.firstChild);
-
-    // Keep only last 10 messages
-    while (debugPanel.children.length > 10) {
-        debugPanel.removeChild(debugPanel.lastChild);
-    }
-}
-
 async function toggleBot(pause) {
     if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
         return;
@@ -70,7 +34,7 @@ async function toggleBot(pause) {
 
     try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/control`, {
+        const response = await fetch(`${API_URL}/bot/control`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -227,20 +191,10 @@ async function executeManualSell() {
 
 async function updateDashboard() {
     try {
-        showDebugMessage('Starting dashboard update...');
-
         const accountInfo = await fetchData('/api/account-info');
-        showDebugMessage('Account info received');
-
-        const performanceMetrics = await fetchData('/api/performance-metrics');
-        showDebugMessage('Performance metrics received');
-
+       const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
-        showDebugMessage('Active trade received');
-
         const botStatus = await fetchData('/bot/control');
-        showDebugMessage('Bot status received');
-
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
@@ -249,7 +203,6 @@ async function updateDashboard() {
         // Update bot control section
         if (botControlElement) {
             const currentState = botStatus?.currentState || 'active';
-            showDebugMessage(`Updating bot control with state: ${currentState}`);
             botControlElement.innerHTML = `
                 <div class="bot-control-card">
                     <h2>Bot Control</h2>
@@ -336,19 +289,13 @@ async function updateDashboard() {
             activeTradeElement.innerHTML = activeTradeHtml;
         }
 
-        showDebugMessage('Dashboard update complete');
+        
 
     } catch (error) {
-        showDebugMessage(`Error: ${error.message}`, 'error');
+        console.error('Error updating dashboard:', error);
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
-        errorDiv.style.cssText = `
-            background-color: #ffebee;
-            padding: 10px;
-            margin: 10px;
-            border: 1px solid #ef9a9a;
-        `;
-        errorDiv.textContent = `Dashboard Error: ${error.message}`;
+        errorDiv.textContent = `Failed to update dashboard: ${error.message}`;
         document.body.insertBefore(errorDiv, document.body.firstChild);
     }
 // Add these helper functions for time formatting
