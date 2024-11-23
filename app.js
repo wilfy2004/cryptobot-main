@@ -190,14 +190,36 @@ async function updateDashboard() {
         const accountInfo = await fetchData('/api/account-info');
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
-        
-        const accountInfoElement = document.getElementById('account-info');
-        const performanceMetricsElement = document.getElementById('performance-metrics');
-        const activeTradeElement = document.getElementById('active-trade');
+        const botStatus = await fetchData('/bot/control');
+
+        // Get all elements at once and check they exist
+        const elements = {
+            accountInfo: document.getElementById('account-info'),
+            performanceMetrics: document.getElementById('performance-metrics'),
+            activeTrade: document.getElementById('active-trade'),
+            botControl: document.getElementById('bot-control')
+        };
+
+        // Update bot control section
+        if (elements.botControl) {
+            const currentState = botStatus?.currentState || 'active';
+            elements.botControl.innerHTML = `
+                <div class="bot-control-card">
+                    <h2>Bot Control</h2>
+                    <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
+                        Current Status: ${currentState.toUpperCase()}
+                    </div>
+                    <button onclick="toggleBot(${currentState === 'active'})" 
+                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                        ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
+                    </button>
+                </div>
+            `;
+        }
 
         // Update performance metrics
-        if (performanceMetricsElement && performanceMetrics) {
-            performanceMetricsElement.innerHTML = `
+        if (elements.performanceMetrics && performanceMetrics) {
+            elements.performanceMetrics.innerHTML = `
                 <h2>Performance Metrics</h2>
                 <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
                 <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
@@ -211,29 +233,15 @@ async function updateDashboard() {
         }
 
         // Update account info
-        if (accountInfoElement && accountInfo && accountInfo.balance !== undefined) {
-            accountInfoElement.innerHTML = `
+        if (elements.accountInfo && accountInfo && accountInfo.balance !== undefined) {
+            elements.accountInfo.innerHTML = `
                 <h2>Account Info</h2>
                 <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
         }
-         if (botControlElement) {
-            const currentState = botStatus?.currentState || 'active';
-            botControlElement.innerHTML = `
-                <div class="bot-control-card">
-                    <h2>Bot Control</h2>
-                    <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
-                        Current Status: ${currentState.toUpperCase()}
-                    </div>
-                    <button onclick="toggleBot(${currentState === 'active'})" 
-                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                        ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
-                    </button>
-                </div>
-            `;
-        }
+        
         // Update active trade section
-        if (activeTradeElement) {
+        if (elements.activeTrade) {
             const activeTradeHtml = activeTrade
                 ? `
                     <div class="active-trade-card">
@@ -278,8 +286,9 @@ async function updateDashboard() {
                     `
                 : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
             
-            activeTradeElement.innerHTML = activeTradeHtml;
+            elements.activeTrade.innerHTML = activeTradeHtml;
         }
+
     } catch (error) {
         console.error('Error updating dashboard:', error);
         const errorDiv = document.createElement('div');
