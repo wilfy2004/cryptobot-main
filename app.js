@@ -33,7 +33,7 @@ async function toggleBot(pause) {
 
     try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/bot/control`, {
+        const response = await fetch(`${API_URL}/api/control`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
