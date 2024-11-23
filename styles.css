@@ -128,7 +128,42 @@
     margin-bottom: 24px;
     text-align: center;
 }
+.bot-control-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
+.bot-status {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.bot-status.active {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.bot-status.paused {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.action-button.pause-bot {
+    background-color: #ff5252;
+    width: 100%;
+}
+
+.action-button.resume-bot {
+    background-color: #4caf50;
+    width: 100%;
+}
 /* Add these styles to your existing styles.css - don't replace anything */
 
 /*.table-container {
