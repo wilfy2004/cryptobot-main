@@ -27,38 +27,6 @@ async function fetchData(endpoint) {
     return response.json();
 }
 
-async function toggleBot(pause) {
-    if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/bot/control`, {  // This endpoint should match your Node-RED HTTP endpoint
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                command: pause ? 'pause' : 'resume'
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update bot status');
-        }
-
-        const result = await response.json();
-        alert(`Bot ${pause ? 'paused' : 'resumed'} successfully`);
-        await updateDashboard();
-    } catch (error) {
-        console.error('Error updating bot status:', error);
-        alert(`Failed to update bot status: ${error.message}`);
-    }
-}
-// Add this debugging code to the toggleTrailingStop function
 async function toggleTrailingStop(disable) {
     if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trailing stop?`)) {
         return;
@@ -91,7 +59,6 @@ async function toggleTrailingStop(disable) {
     }
 }
 
-// Trade timing control functions
 async function updateTradeTiming(minutes) {
     try {
         const token = localStorage.getItem('auth_token');
@@ -155,9 +122,7 @@ async function login(username, password) {
         alert('Login failed. Please try again.');
     }
 }
-// Add these functions to your existing app.js
 
-// Manual sell API call function
 async function executeManualSell() {
     if (!confirm('Are you sure you want to immediately sell the current position?')) {
         return;
@@ -186,37 +151,15 @@ async function executeManualSell() {
         alert(`Failed to execute manual sell: ${error.message}`);
     }
 }
-
-// Update the activeTrade template in the updateDashboard function
-
 async function updateDashboard() {
     try {
         const accountInfo = await fetchData('/api/account-info');
         const performanceMetrics = await fetchData('/api/performance-metrics');
         const activeTrade = await fetchData('/api/active-trade');
-        const botStatus = await fetchData('/bot/control');
         
         const accountInfoElement = document.getElementById('account-info');
         const performanceMetricsElement = document.getElementById('performance-metrics');
         const activeTradeElement = document.getElementById('active-trade');
-        const botControlElement = document.getElementById('bot-control');
-
-        // Update bot control section
-        if (botControlElement) {
-            const currentState = botStatus?.currentState || 'active';
-            botControlElement.innerHTML = `
-                <div class="bot-control-card">
-                    <h2>Bot Control</h2>
-                    <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
-                        Current Status: ${currentState.toUpperCase()}
-                    </div>
-                    <button onclick="toggleBot(${currentState === 'active'})" 
-                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                        ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
-                    </button>
-                </div>
-            `;
-        }
 
         // Update performance metrics
         if (performanceMetricsElement && performanceMetrics) {
@@ -289,7 +232,6 @@ async function updateDashboard() {
             
             activeTradeElement.innerHTML = activeTradeHtml;
         }
-
     } catch (error) {
         console.error('Error updating dashboard:', error);
         const errorDiv = document.createElement('div');
@@ -298,7 +240,7 @@ async function updateDashboard() {
         document.body.insertBefore(errorDiv, document.body.firstChild);
     }
 }
-// Add these helper functions for time formatting
+
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
 }
@@ -368,55 +310,6 @@ async function loadRecentTrades() {
         document.getElementById('content').innerHTML = '<p>Error loading recent trades. Please try again.</p>';
     }
 }
-async function loadMonitoredCoins() {
-    try {
-        const response = await fetchData('/api/monitored-coins');
-        console.log('Raw monitored coins response:', response);
-
-        let monitoredCoins;
-        if (Array.isArray(response)) {
-            monitoredCoins = { coins: response };
-        } else if (typeof response === 'object' && response !== null) {
-            monitoredCoins = response;
-        } else {
-            throw new Error('Unexpected response format');
-        }
-
-        if (!monitoredCoins.coins || !Array.isArray(monitoredCoins.coins)) {
-            throw new Error('Invalid monitored coins data received');
-        }
-
-        const tableHtml = `
-            <h2>Monitored Coins</h2>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Symbol</th>
-                        <th>Dip Count</th>
-                        <th>State</th>
-                        <th>First Dip</th>
-                        <th>Last Dip</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${monitoredCoins.coins.map(coin => `
-                        <tr>
-                            <td>${coin.symbol}</td>
-                            <td>${coin.dipCount}</td>
-                            <td>${coin.state}</td>
-                            <td>${coin.timing?.firstDip?.time ? `${coin.timing.firstDip.time} (${coin.timing.firstDip.ago})` : '-'}</td>
-                            <td>${coin.timing?.lastDip?.time ? `${coin.timing.lastDip.time} (${coin.timing.lastDip.ago})` : '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-        document.getElementById('content').innerHTML = tableHtml;
-    } catch (error) {
-        console.error('Error loading monitored coins:', error);
-        document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
-    }
-}
 
 function loadHardResetInfo() {
     const resetVariables = [
@@ -440,8 +333,6 @@ function loadHardResetInfo() {
         contentElement.innerHTML = resetInfoHtml;
         document.getElementById('confirm-hard-reset').addEventListener('click', performHardReset);
         document.getElementById('cancel-hard-reset').addEventListener('click', () => window.location.href = 'index.html');
-    } else {
-        console.error('Content element not found');
     }
 }
 
@@ -460,7 +351,7 @@ async function performHardReset() {
 
         const responseData = await response.json();
         alert('Hard reset performed successfully');
-        window.location.href = 'index.html';  // Redirect to main page after reset
+        window.location.href = 'index.html';
     } catch (error) {
         console.error('Hard reset error:', error);
         alert(`Hard reset failed. Error: ${error.message}`);
@@ -572,12 +463,8 @@ function initializeApp() {
     }
 }
 
-// Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-// Add visible error handler for mobile debugging
-
-// Add visible error handler for mobile debugging
 window.onerror = function(msg, url, lineNo, columnNo, error) {
     const errorDiv = document.createElement('div');
     errorDiv.style.backgroundColor = '#ffebee';
