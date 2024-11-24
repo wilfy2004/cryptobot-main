@@ -220,8 +220,22 @@ async function updateDashboard() {
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
-            activeTrade: document.getElementById('active-trade')
+            activeTrade: document.getElementById('active-trade'),
+            botControl: document.getElementById('bot-control')
         };
+
+        // Update bot control section
+        if (elements.botControl) {
+            elements.botControl.innerHTML = `
+                <div class="bot-control-card">
+                    <h2>Bot Control</h2>
+                    <div class="control-buttons">
+                        <button onclick="pauseBot()" class="action-button pause-bot">Pause Bot</button>
+                        <button onclick="resumeBot()" class="action-button resume-bot">Resume Bot</button>
+                    </div>
+                </div>
+            `;
+        }
 
         // Update performance metrics
         if (elements.performanceMetrics && performanceMetrics) {
