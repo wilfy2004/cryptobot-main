@@ -11,6 +11,11 @@ async function fetchData(endpoint) {
         throw new Error('No authentication token found');
     }
     
+    // Special handling for bot status endpoint
+    if (endpoint === '/api/bot-control' && !endpoint.includes('?')) {
+        endpoint += '?command=status';  // Add status command for GET requests
+    }
+    
     const response = await fetch(`${API_URL}${endpoint}`, {
         headers: {
             'Authorization': `Bearer ${token}`
@@ -25,6 +30,32 @@ async function fetchData(endpoint) {
     }
     
     return response.json();
+}
+async function updateBotStatus() {
+    try {
+        const response = await fetchData('/api/bot-control');
+        const botStatus = response.currentState || 'active';
+        
+        const botControlElement = document.getElementById('bot-control');
+        if (botControlElement) {
+            botControlElement.innerHTML = `
+                <div class="bot-control-card">
+                    <h2>Bot Control</h2>
+                    <div class="bot-status ${botStatus === 'active' ? 'active' : 'paused'}">
+                        Current Status: ${botStatus.toUpperCase()}
+                    </div>
+                    <button onclick="toggleBot(${botStatus === 'active'})" 
+                            class="action-button ${botStatus === 'active' ? 'pause-bot' : 'resume-bot'}">
+                        ${botStatus === 'active' ? 'Pause Bot' : 'Resume Bot'}
+                    </button>
+                </div>
+            `;
+        }
+        return botStatus;
+    } catch (error) {
+        console.error('Error fetching bot status:', error);
+        return 'active'; // Default to active if status fetch fails
+    }
 }
 async function toggleBot(pause) {
     if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
@@ -187,12 +218,12 @@ async function executeManualSell() {
 }
 async function updateDashboard() {
     try {
-        const accountInfo = await fetchData('/api/account-info');
-        const performanceMetrics = await fetchData('/api/performance-metrics');
-        const activeTrade = await fetchData('/api/active-trade');
-        //console.log('Fetching bot status...');
-        //const botStatus = await fetchData('/api/bot-control');
-     //   console.log('Bot status response:', botStatus);
+        const [accountInfo, performanceMetrics, activeTrade, botStatus] = await Promise.all([
+            fetchData('/api/account-info'),
+            fetchData('/api/performance-metrics'),
+            fetchData('/api/active-trade'),
+            updateBotStatus() // Use the new function
+        ]);
 
         // Get all elements at once and check they exist
         const elements = {
@@ -201,25 +232,6 @@ async function updateDashboard() {
             activeTrade: document.getElementById('active-trade'),
             botControl: document.getElementById('bot-control')
         };
-
-        // Update bot control section
-// Update bot control section
-//if (elements.botControl) {
-//    const currentState = botStatus?.currentState || 'active';
-//    console.log('Current bot state:', currentState); // Add this debug line
-//    elements.botControl.innerHTML = `
-//        <div class="bot-control-card">
- //           <h2>Bot Control</h2>
- //            <div class="bot-status ${currentState === 'active' ? 'active' : 'paused'}">
- //                Current Status: ${currentState.toUpperCase()}
- //            </div>
- //            <button onclick="toggleBot(${currentState === 'active'})" 
-  //                   class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
- //                ${currentState === 'active' ? 'Pause Bot' : 'Resume Bot'}
-  //           </button>
- //        </div>
- //    `;
- //}
 
         // Update performance metrics
         if (elements.performanceMetrics && performanceMetrics) {
