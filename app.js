@@ -5,36 +5,61 @@ let logoutTimer;
 const LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
 const isGitHubPages = window.location.hostname.includes('github.io');
 
-async function getBotStatus() {
+async function pauseBot() {
+    if (!confirm('Are you sure you want to pause the trading bot?')) {
+        return;
+    }
+
     try {
         const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_URL}/api/bot-control`, {
-            method: 'GET',
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ command: 'pause' })
         });
-
+        
         if (!response.ok) {
-            throw new Error('Failed to fetch bot status');
+            throw new Error('Failed to pause bot');
         }
-
-        const data = await response.json();
-        return data.currentState || 'active';
+        
+        alert('Bot paused successfully');
     } catch (error) {
-        console.error('Error getting bot status:', error);
-        return 'active'; // Default fallback
+        alert('Failed to pause bot');
+    }
+}
+
+async function resumeBot() {
+    if (!confirm('Are you sure you want to resume the trading bot?')) {
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/bot-control`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ command: 'resume' })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to resume bot');
+        }
+        
+        alert('Bot resumed successfully');
+    } catch (error) {
+        alert('Failed to resume bot');
     }
 }
 async function fetchData(endpoint) {
     const token = localStorage.getItem('auth_token');
     if (!token) {
         throw new Error('No authentication token found');
-    }
-    
-    // Special handling for bot status endpoint
-    if (endpoint === '/api/bot-control' && !endpoint.includes('?')) {
-        endpoint += '?command=status';  // Add status command for GET requests
     }
     
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -52,63 +77,7 @@ async function fetchData(endpoint) {
     
     return response.json();
 }
-async function updateBotStatus() {
-    try {
-        const response = await fetchData('/api/bot-control');
-        const botStatus = response.currentState || 'active';
-        
-        const botControlElement = document.getElementById('bot-control');
-        if (botControlElement) {
-            botControlElement.innerHTML = `
-                <div class="bot-control-card">
-                    <h2>Bot Control</h2>
-                    <div class="bot-status ${botStatus === 'active' ? 'active' : 'paused'}">
-                        Current Status: ${botStatus.toUpperCase()}
-                    </div>
-                    <button onclick="toggleBot(${botStatus === 'active'})" 
-                            class="action-button ${botStatus === 'active' ? 'pause-bot' : 'resume-bot'}">
-                        ${botStatus === 'active' ? 'Pause Bot' : 'Resume Bot'}
-                    </button>
-                </div>
-            `;
-        }
-        return botStatus;
-    } catch (error) {
-        console.error('Error fetching bot status:', error);
-        return 'active'; // Default to active if status fetch fails
-    }
-}
-async function toggleBot(currentState) {
-    const newCommand = currentState === 'active' ? 'pause' : 'resume';
-    
-    if (!confirm(`Are you sure you want to ${newCommand} the trading bot?`)) {
-        return;
-    }
 
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/bot-control`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                command: newCommand
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update bot status');
-        }
-
-        // Wait a moment for Node-RED to update its state
-        setTimeout(updateDashboard, 1000);
-    } catch (error) {
-        console.error('Error toggling bot:', error);
-        alert('Failed to update bot status. Please try again.');
-    }
-}
 async function toggleTrailingStop(disable) {
     if (!confirm(`Are you sure you want to ${disable ? 'disable' : 'enable'} the trailing stop?`)) {
         return;
@@ -237,95 +206,22 @@ async function executeManualSell() {
         }
     }
 }
-// Separate function to get bot status
-async function getBotStatus() {
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/bot-control`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch bot status');
-        }
 
-        const data = await response.json();
-        return data.currentState || 'active';
-    } catch (error) {
-        console.error('Error getting bot status:', error);
-        return 'active'; // Default fallback
-    }
-}
-
-// Toggle bot function
-async function toggleBot(currentState) {
-    const newCommand = currentState === 'active' ? 'pause' : 'resume';
-    
-    if (!confirm(`Are you sure you want to ${newCommand} the trading bot?`)) {
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/bot-control`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                command: newCommand
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update bot status');
-        }
-
-        await updateDashboard();
-    } catch (error) {
-        console.error('Error toggling bot:', error);
-        alert('Failed to update bot status. Please try again.');
-    }
-}
 
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Fetch all data in parallel
-        const [accountInfo, performanceMetrics, activeTrade, botState] = await Promise.all([
-            fetchData('/api/account-info'),
-            fetchData('/api/performance-metrics'),
-            fetchData('/api/active-trade'),
-            getBotStatus()
-        ]);
+        const accountInfo = await fetchData('/api/account-info');
+        const performanceMetrics = await fetchData('/api/performance-metrics');
+        const activeTrade = await fetchData('/api/active-trade');
 
         // Get all elements
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
-            activeTrade: document.getElementById('active-trade'),
-            botControl: document.getElementById('bot-control')
+            activeTrade: document.getElementById('active-trade')
         };
-
-        // Update bot control section
-        if (elements.botControl) {
-            elements.botControl.innerHTML = `
-                <div class="bot-control-card">
-                    <h2>Bot Control</h2>
-                    <div class="bot-status ${botState === 'active' ? 'active' : 'paused'}">
-                        Current Status: ${botState.toUpperCase()}
-                    </div>
-                    <button onclick="toggleBot('${botState}')" 
-                            class="action-button ${botState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                        ${botState === 'active' ? 'Pause Bot' : 'Resume Bot'}
-                    </button>
-                </div>
-            `;
-        }
 
         // Update performance metrics
         if (elements.performanceMetrics && performanceMetrics) {
