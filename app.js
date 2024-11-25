@@ -278,14 +278,11 @@ async function updateDashboard() {
                         <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
                         <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
                         <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                        <p><strong>Debug - trailingStopDisabled:</strong> ${activeTrade.trailingStopDisabled}</p>
-                        <p><strong>Debug - manuallyControlled:</strong> ${activeTrade.manuallyControlled}</p>
-                        <p><strong>Debug - reachedTakeProfit:</strong> ${activeTrade.reachedTakeProfit}</p>
                         <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
-                            <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'DISABLED' : 'ENABLED'}
-                        </p>
-                    </div>
+                            <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
+                    </p>
                 </div>
+            </div>
                 <div class="trade-controls">
                     <div class="control-buttons">
                         <button onclick="handleExtendTime(120)" class="action-button extend-time">
