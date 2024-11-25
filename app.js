@@ -262,7 +262,7 @@ async function updateDashboard() {
         
         // Update active trade section
         if (elements.activeTrade) {
-            const activeTradeHtml = activeTrade
+const activeTradeHtml = activeTrade
     ? `
         <div class="active-trade-card">
             <h2>Active Trade</h2>
@@ -278,13 +278,13 @@ async function updateDashboard() {
                     <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
                     <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
                     <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                    <p class="${activeTrade.trailingStopDisabled || activeTrade.manuallyControlled ? 'warning-text' : 'success-text'}">
+                    <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
                         <strong>Trailing Stop:</strong> ${
-                            activeTrade.trailingStopDisabled || activeTrade.manuallyControlled 
+                            activeTrade.trailingStopDisabled 
                             ? 'Disabled (Manual Control)' 
                             : activeTrade.reachedTakeProfit 
                                 ? 'Active and Tracking' 
-                                : 'Waiting for 1.2% Profit'
+                                : 'Monitoring for 1.2% Profit'
                         }
                     </p>
                 </div>
@@ -297,7 +297,7 @@ async function updateDashboard() {
                     <button onclick="executeManualSell()" class="action-button sell-button">
                         Execute Sell
                     </button>
-                    ${activeTrade.trailingStopDisabled || activeTrade.manuallyControlled ? 
+                    ${activeTrade.trailingStopDisabled ? 
                         `<button onclick="toggleTrailingStop(false)" class="action-button enable-stop">
                             Enable Trailing Stop
                          </button>` :
