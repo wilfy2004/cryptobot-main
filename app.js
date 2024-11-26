@@ -5,6 +5,21 @@ let logoutTimer;
 const LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
 const isGitHubPages = window.location.hostname.includes('github.io');
 
+function handleApiError(error, context) {
+    console.error(`${context}:`, error);
+    // Only show user-facing errors for non-dashboard updates
+    if (context !== 'Dashboard update') {
+        alert(`${context}: ${error.message}`);
+    }
+}
+// Improved error handling utility
+function handleApiError(error, context) {
+    console.error(`${context}:`, error);
+    // Only show user-facing errors for non-dashboard updates
+    if (context !== 'Dashboard update') {
+        alert(`${context}: ${error.message}`);
+    }
+}
 async function pauseBot() {
     if (!confirm('Are you sure you want to pause the trading bot?')) {
         return;
@@ -195,15 +210,25 @@ async function executeManualSell() {
             throw new Error(responseData.error || 'Failed to execute sell order');
         }
 
-        alert('Manual sell order executed successfully');
-        await updateDashboard(); // Refresh the dashboard
+        // Check if the response indicates a successful trade
+        if (responseData.status === 'success' || responseData.executed) {
+            alert('Manual sell order executed successfully');
+            await updateDashboard(); // Refresh the dashboard
+            return;
+        }
+
+        throw new Error(responseData.message || 'Sell order status unclear');
     } catch (error) {
         console.error('Error executing manual sell:', error);
         
-        // Only show error if the sell actually failed
-        if (!error.message.includes('body used already')) {
-            alert(`Failed to execute manual sell: ${error.message}`);
+        // Specific handling for duplicate execution attempts
+        if (error.message.includes('body used already')) {
+            alert('Trade was already executed successfully');
+            await updateDashboard();
+            return;
         }
+
+        handleApiError(error, 'Manual sell execution failed');
     }
 }
 
@@ -212,9 +237,12 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        const accountInfo = await fetchData('/api/account-info');
-        const performanceMetrics = await fetchData('/api/performance-metrics');
-        const activeTrade = await fetchData('/api/active-trade');
+        // Fetch all data in parallel for better performance
+        const [accountInfo, performanceMetrics, activeTrade] = await Promise.all([
+            fetchData('/api/account-info').catch(e => ({ error: e })),
+            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
+            fetchData('/api/active-trade').catch(e => ({ error: e }))
+        ]);
 
         // Get all elements
         const elements = {
@@ -224,7 +252,7 @@ async function updateDashboard() {
             botControl: document.getElementById('bot-control')
         };
 
-        // Update bot control section
+        // Handle individual section updates separately to prevent total failure
         if (elements.botControl) {
             elements.botControl.innerHTML = `
                 <div class="bot-control-card">
@@ -238,7 +266,7 @@ async function updateDashboard() {
         }
 
         // Update performance metrics
-        if (elements.performanceMetrics && performanceMetrics) {
+        if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
             elements.performanceMetrics.innerHTML = `
                 <h2>Performance Metrics</h2>
                 <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
@@ -253,7 +281,7 @@ async function updateDashboard() {
         }
 
         // Update account info
-        if (elements.accountInfo && accountInfo && accountInfo.balance !== undefined) {
+        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
             elements.accountInfo.innerHTML = `
                 <h2>Account Info</h2>
                 <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
@@ -262,60 +290,52 @@ async function updateDashboard() {
         
         // Update active trade section
         if (elements.activeTrade) {
-            const activeTradeHtml = activeTrade
-            ? `
-            <div class="active-trade-card">
-                <h2>Active Trade</h2>
-                <div class="trade-details">
-                    <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
-                    <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
-                    <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
-                    <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
-                    <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
-                        <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
-                    </p>
-                    <div class="time-info">
-                        <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
-                        <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
-                        <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                        <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
-                            <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
-                    </p>
-                </div>
-            </div>
-                <div class="trade-controls">
-                    <div class="control-buttons">
-                        <button onclick="handleExtendTime(120)" class="action-button extend-time">
-                            +2 Hours
-                        </button>
-                        <button onclick="executeManualSell()" class="action-button sell-button">
-                            Execute Sell
-                        </button>
-                        ${activeTrade.trailingStopDisabled ? 
-                            `<button onclick="toggleTrailingStop(false)" class="action-button enable-stop">
-                                Enable Trailing Stop
-                             </button>` :
-                            `<button onclick="toggleTrailingStop(true)" class="action-button disable-stop">
-                                Disable Trailing Stop
-                             </button>`
-                        }
+            const activeTradeHtml = (!activeTrade || activeTrade.error)
+                ? '<div class="no-trade-card"><h2>No Active Trade</h2></div>'
+                : `
+                <div class="active-trade-card">
+                    <h2>Active Trade</h2>
+                    <div class="trade-details">
+                        <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
+                        <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
+                        <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
+                        <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
+                        <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
+                            <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
+                        </p>
+                        <div class="time-info">
+                            <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
+                            <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
+                            <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
+                            <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
+                                <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
+                            </p>
+                        </div>
                     </div>
-                    <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+                    <div class="trade-controls">
+                        <div class="control-buttons">
+                            <button onclick="handleExtendTime(120)" class="action-button extend-time">
+                                +2 Hours
+                            </button>
+                            <button onclick="executeManualSell()" class="action-button sell-button">
+                                Execute Sell
+                            </button>
+                            ${activeTrade.trailingStopDisabled ? 
+                                `<button onclick="toggleTrailingStop(false)" class="action-button enable-stop">
+                                    Enable Trailing Stop
+                                 </button>` :
+                                `<button onclick="toggleTrailingStop(true)" class="action-button disable-stop">
+                                    Disable Trailing Stop
+                                 </button>`
+                            }
+                        </div>
+                        <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
+                    </div>
                 </div>
-            </div>
-            `
-        : '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
+                `;
             
             elements.activeTrade.innerHTML = activeTradeHtml;
         }
-
-    } catch (error) {
-        console.error('Error updating dashboard:', error);
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.textContent = `Failed to update dashboard: ${error.message}`;
-        document.body.insertBefore(errorDiv, document.body.firstChild);
-    }
 }
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
