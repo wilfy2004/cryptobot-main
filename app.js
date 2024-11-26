@@ -12,14 +12,7 @@ function handleApiError(error, context) {
         alert(`${context}: ${error.message}`);
     }
 }
-// Improved error handling utility
-function handleApiError(error, context) {
-    console.error(`${context}:`, error);
-    // Only show user-facing errors for non-dashboard updates
-    if (context !== 'Dashboard update') {
-        alert(`${context}: ${error.message}`);
-    }
-}
+
 async function pauseBot() {
     if (!confirm('Are you sure you want to pause the trading bot?')) {
         return;
@@ -336,6 +329,10 @@ async function updateDashboard() {
             
             elements.activeTrade.innerHTML = activeTradeHtml;
         }
+    } catch (error) {
+        // Just log to console, don't show error messages in UI
+        console.error('Dashboard update error:', error);
+    }
 }
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
@@ -609,13 +606,3 @@ function initializeApp() {
 
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-window.onerror = function(msg, url, lineNo, columnNo, error) {
-    const errorDiv = document.createElement('div');
-    errorDiv.style.backgroundColor = '#ffebee';
-    errorDiv.style.padding = '10px';
-    errorDiv.style.margin = '10px';
-    errorDiv.style.border = '1px solid #ef9a9a';
-    errorDiv.innerHTML = `Error: ${msg}<br>Line: ${lineNo}`;
-    document.body.insertBefore(errorDiv, document.body.firstChild);
-    return false;
-};
