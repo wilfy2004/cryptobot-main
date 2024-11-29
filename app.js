@@ -104,14 +104,19 @@ async function toggleTrailingStop(disable) {
             })
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update trailing stop status');
+        const result = await response.json();
+
+        // Check for success indicators in the response data
+        if (result.success || result.status === 'success') {
+            alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
+            await updateDashboard();
+            return;
         }
 
-        const result = await response.json();
-        alert(`Trailing stop ${disable ? 'disabled' : 'enabled'} successfully`);
-        await updateDashboard();
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to update trailing stop status');
+        }
+
     } catch (error) {
         console.error('Error updating trailing stop:', error);
         alert(`Failed to update trailing stop: ${error.message}`);
@@ -199,10 +204,6 @@ async function executeManualSell() {
 
         const responseData = await response.json();
 
-        if (!response.ok) {
-            throw new Error(responseData.error || 'Failed to execute sell order');
-        }
-
         // Check if the response indicates a successful trade
         if (responseData.status === 'success' || responseData.executed) {
             alert('Manual sell order executed successfully');
@@ -210,7 +211,10 @@ async function executeManualSell() {
             return;
         }
 
-        throw new Error(responseData.message || 'Sell order status unclear');
+        if (!response.ok) {
+            throw new Error(responseData.error || 'Failed to execute sell order');
+        }
+
     } catch (error) {
         console.error('Error executing manual sell:', error);
         
