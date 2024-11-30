@@ -590,22 +590,10 @@ function initializeApp() {
     setupNavigation();
 
     switch (currentPage) {
-        case 'index.html':
-            // First load active trade separately and quickly
-            fetchData('/api/active-trade')
-                .then(activeTrade => {
-                    const element = document.getElementById('active-trade');
-                    if (element && activeTrade) {
-                        // Update just the active trade section
-                        updateActiveTrade(activeTrade, element);
-                    }
-                })
-                .catch(console.error); // Silent catch to not block other updates
-
-            // Then start the full dashboard update
-            updateDashboard();
-            dashboardInterval = setInterval(updateDashboard, 10000);
-            break;
+    case 'index.html':
+        updateDashboard();
+        dashboardInterval = setInterval(updateDashboard, 10000);
+        break;
         // ... rest of the switch cases remain the same
     }
 }
