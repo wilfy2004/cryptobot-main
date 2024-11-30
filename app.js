@@ -144,7 +144,6 @@ async function updateTradeTiming(minutes) {
         throw error;
     }
 }
-
 function resetLogoutTimer() {
     if (logoutTimer) {
         clearTimeout(logoutTimer);
@@ -224,9 +223,6 @@ async function executeManualSell() {
         handleApiError(error, 'Manual sell execution failed');
     }
 }
-
-
-
 // Main dashboard update function
 async function updateDashboard() {
     try {
@@ -428,13 +424,6 @@ function loadHardResetInfo() {
         document.getElementById('cancel-hard-reset').addEventListener('click', () => window.location.href = 'index.html');
     }
 }
-
-async function showHardResetConfirmation() {
-    if (confirm('Are you sure you want to perform a hard reset? This will reset all monitoring variables.')) {
-        await performHardReset();
-    }
-}
-
 async function performHardReset() {
     try {
         const response = await fetch(`${API_URL}/api/hard-reset`, {
@@ -448,9 +437,9 @@ async function performHardReset() {
             throw new Error(`Hard reset failed with status: ${response.status}`);
         }
 
-        const data = await response.json();
+        const responseData = await response.json();
         alert('Hard reset performed successfully');
-        location.reload();
+        window.location.href = 'index.html';
     } catch (error) {
         console.error('Hard reset error:', error);
         alert(`Hard reset failed. Error: ${error.message}`);
@@ -509,55 +498,7 @@ function setupNavigation() {
     if (activeCoinChartButton) activeCoinChartButton.addEventListener('click', () => window.location.href = 'active-coin-chart.html');
     if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 }
-async function loadMonitoredCoins() {
-    try {
-        const response = await fetchData('/api/monitored-coins');
-        console.log('Raw monitored coins response:', response);
 
-        let monitoredCoins;
-        if (Array.isArray(response)) {
-            monitoredCoins = { coins: response };
-        } else if (typeof response === 'object' && response !== null) {
-            monitoredCoins = response;
-        } else {
-            throw new Error('Unexpected response format');
-        }
-
-        if (!monitoredCoins.coins || !Array.isArray(monitoredCoins.coins)) {
-            throw new Error('Invalid monitored coins data received');
-        }
-
-        const tableHtml = `
-            <h2>Monitored Coins</h2>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Symbol</th>
-                        <th>Dip Count</th>
-                        <th>State</th>
-                        <th>First Dip</th>
-                        <th>Last Dip</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${monitoredCoins.coins.map(coin => `
-                        <tr>
-                            <td>${coin.symbol}</td>
-                            <td>${coin.dipCount}</td>
-                            <td>${coin.state}</td>
-                            <td>${coin.timing?.firstDip?.time ? `${coin.timing.firstDip.time} (${coin.timing.firstDip.ago})` : '-'}</td>
-                            <td>${coin.timing?.lastDip?.time ? `${coin.timing.lastDip.time} (${coin.timing.lastDip.ago})` : '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-        document.getElementById('content').innerHTML = tableHtml;
-    } catch (error) {
-        console.error('Error loading monitored coins:', error);
-        document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
-    }
-}
 function initializeLoginPage() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -590,62 +531,24 @@ function initializeApp() {
     setupNavigation();
 
     switch (currentPage) {
-    case 'index.html':
-        updateDashboard();
-        dashboardInterval = setInterval(updateDashboard, 10000);
-        break;
-        // ... rest of the switch cases remain the same
+        case 'index.html':
+            updateDashboard();
+            dashboardInterval = setInterval(updateDashboard, 10000);
+            break;
+        case 'recent-trades.html':
+            loadRecentTrades();
+            break;
+        case 'monitored-coins.html':
+            console.log('Loading monitored coins...');
+            loadMonitoredCoins();
+            break;
+        case 'hard-reset-confirm.html':
+            loadHardResetInfo();
+            break;
+        case 'active-coin-chart.html':
+            loadActiveCoinChart();
+            break;
     }
 }
 
-// Add this new function to handle just active trade updates
-function updateActiveTrade(activeTrade, element) {
-    const activeTradeHtml = (!activeTrade || activeTrade.error)
-        ? '<div class="no-trade-card"><h2>No Active Trade</h2></div>'
-        : `
-        <div class="active-trade-card">
-            <h2>Active Trade</h2>
-            <div class="trade-details">
-                <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
-                <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
-                <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
-                <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
-                <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
-                    <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
-                </p>
-                <div class="time-info">
-                    <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
-                    <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
-                    <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                    <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
-                        <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
-                    </p>
-                </div>
-            </div>
-            <div class="trade-controls">
-                <div class="control-buttons">
-                    <button onclick="handleExtendTime(120)" class="action-button extend-time">
-                        +2 Hours
-                    </button>
-                    <button onclick="executeManualSell()" class="action-button sell-button">
-                        Execute Sell
-                    </button>
-                    ${activeTrade.trailingStopDisabled ? 
-                        `<button onclick="toggleTrailingStop(false)" class="action-button enable-stop">
-                            Enable Trailing Stop
-                         </button>` :
-                        `<button onclick="toggleTrailingStop(true)" class="action-button disable-stop">
-                            Disable Trailing Stop
-                         </button>`
-                    }
-                </div>
-                <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-            </div>
-        </div>
-        `;
-    
-    element.innerHTML = activeTradeHtml;
-}
-
 document.addEventListener('DOMContentLoaded', initializeApp);
-
