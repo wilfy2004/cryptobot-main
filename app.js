@@ -399,7 +399,55 @@ async function loadRecentTrades() {
         document.getElementById('content').innerHTML = '<p>Error loading recent trades. Please try again.</p>';
     }
 }
+async function loadMonitoredCoins() {
+    try {
+        const response = await fetchData('/api/monitored-coins');
+        console.log('Raw monitored coins response:', response);
 
+        let monitoredCoins;
+        if (Array.isArray(response)) {
+            monitoredCoins = { coins: response };
+        } else if (typeof response === 'object' && response !== null) {
+            monitoredCoins = response;
+        } else {
+            throw new Error('Unexpected response format');
+        }
+
+        if (!monitoredCoins.coins || !Array.isArray(monitoredCoins.coins)) {
+            throw new Error('Invalid monitored coins data received');
+        }
+
+        const tableHtml = `
+            <h2>Monitored Coins</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Dip Count</th>
+                        <th>State</th>
+                        <th>First Dip</th>
+                        <th>Last Dip</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${monitoredCoins.coins.map(coin => `
+                        <tr>
+                            <td>${coin.symbol}</td>
+                            <td>${coin.dipCount}</td>
+                            <td>${coin.state}</td>
+                            <td>${coin.timing?.firstDip?.time ? `${coin.timing.firstDip.time} (${coin.timing.firstDip.ago})` : '-'}</td>
+                            <td>${coin.timing?.lastDip?.time ? `${coin.timing.lastDip.time} (${coin.timing.lastDip.ago})` : '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+        document.getElementById('content').innerHTML = tableHtml;
+    } catch (error) {
+        console.error('Error loading monitored coins:', error);
+        document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
+    }
+}
 function loadHardResetInfo() {
     const resetVariables = [
         'monitoringCoins',
