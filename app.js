@@ -580,73 +580,19 @@ function initializeApp() {
 
     switch (currentPage) {
         case 'index.html':
-            // Load everything except active trade first
-            Promise.all([
-                fetchData('/api/account-info').catch(e => ({ error: e })),
-                fetchData('/api/performance-metrics').catch(e => ({ error: e }))
-            ]).then(([accountInfo, performanceMetrics]) => {
-                // Update account info and metrics immediately
-                const elements = {
-                    accountInfo: document.getElementById('account-info'),
-                    performanceMetrics: document.getElementById('performance-metrics'),
-                    botControl: document.getElementById('bot-control')
-                };
-
-                if (elements.botControl) {
-                    elements.botControl.innerHTML = `
-                        <div class="bot-control-card">
-                            <h2>Bot Control</h2>
-                            <div class="control-buttons">
-                                <button onclick="pauseBot()" class="action-button pause-bot">Pause Bot</button>
-                                <button onclick="resumeBot()" class="action-button resume-bot">Resume Bot</button>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
-                    elements.performanceMetrics.innerHTML = `
-                        <h2>Performance Metrics</h2>
-                        <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
-                        <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
-                        <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
-                        <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
-                        <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
-                        <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
-                        <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
-                        <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
-                    `;
-                }
-
-                if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
-                    elements.accountInfo.innerHTML = `
-                        <h2>Account Info</h2>
-                        <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-                    `;
-                }
-            });
-
-            // Start active trade updates immediately
+            // First load active trade separately and quickly
             fetchData('/api/active-trade')
                 .then(activeTrade => {
                     const element = document.getElementById('active-trade');
                     if (element) {
-                        updateDashboardActiveTrade(activeTrade, element);
+                        updateActiveTrade(activeTrade, element);
                     }
                 })
                 .catch(console.error);
 
-            // Set up regular updates that won't overwrite active trade
-            dashboardInterval = setInterval(() => {
-                fetchData('/api/active-trade')
-                    .then(activeTrade => {
-                        const element = document.getElementById('active-trade');
-                        if (element) {
-                            updateDashboardActiveTrade(activeTrade, element);
-                        }
-                    })
-                    .catch(console.error);
-            }, 10000);
+            // Then start the full dashboard update
+            updateDashboard();
+            dashboardInterval = setInterval(updateDashboard, 10000);
             break;
         case 'recent-trades.html':
             loadRecentTrades();
