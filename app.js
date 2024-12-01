@@ -472,6 +472,12 @@ function loadHardResetInfo() {
         document.getElementById('cancel-hard-reset').addEventListener('click', () => window.location.href = 'index.html');
     }
 }
+async function showHardResetConfirmation() {
+    if (confirm('Are you sure you want to perform a hard reset? This will reset all monitoring variables.')) {
+        await performHardReset();
+    }
+}
+
 async function performHardReset() {
     try {
         const response = await fetch(`${API_URL}/api/hard-reset`, {
@@ -485,15 +491,14 @@ async function performHardReset() {
             throw new Error(`Hard reset failed with status: ${response.status}`);
         }
 
-        const responseData = await response.json();
+        const data = await response.json();
         alert('Hard reset performed successfully');
-        window.location.href = 'index.html';
+        location.reload();
     } catch (error) {
         console.error('Hard reset error:', error);
         alert(`Hard reset failed. Error: ${error.message}`);
     }
 }
-
 function loadActiveCoinChart() {
     fetchData('/api/active-trade')
         .then(activeTrade => {
