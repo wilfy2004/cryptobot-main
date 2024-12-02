@@ -537,7 +537,7 @@ function initializeApp() {
     setupActivityListeners();
     setupNavigation();
 
-switch (currentPage) {
+    switch (currentPage) {
         case 'index.html':
             // First load active trade separately and quickly
             fetchData('/api/active-trade')
@@ -561,7 +561,7 @@ switch (currentPage) {
                         }
                     })
                     .catch(console.error);
-            }, 2000); // Update active trade more frequently
+            }, 2000);
             break;
         case 'recent-trades.html':
             loadRecentTrades();
