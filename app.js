@@ -232,18 +232,16 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Fetch all data in parallel for better performance
-        const [accountInfo, performanceMetrics, activeTrade] = await Promise.all([
+        // Only fetch account info and performance metrics, not active trade
+        const [accountInfo, performanceMetrics] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
-            fetchData('/api/active-trade').catch(e => ({ error: e }))
+            fetchData('/api/performance-metrics').catch(e => ({ error: e }))
         ]);
 
-        // Get all elements
+        // Get all elements except active trade
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
-            activeTrade: document.getElementById('active-trade'),
             botControl: document.getElementById('bot-control')
         };
 
@@ -282,57 +280,7 @@ async function updateDashboard() {
                 <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
         }
-        
-        // Update active trade section
-        if (elements.activeTrade) {
-            const activeTradeHtml = (!activeTrade || activeTrade.error)
-                ? '<div class="no-trade-card"><h2>No Active Trade</h2></div>'
-                : `
-                <div class="active-trade-card">
-                    <h2>Active Trade</h2>
-                    <div class="trade-details">
-                        <p><strong>Symbol:</strong> ${activeTrade.symbol}</p>
-                        <p><strong>Entry Price:</strong> $${parseFloat(activeTrade.entryPrice).toFixed(8)}</p>
-                        <p><strong>Current Price:</strong> $${parseFloat(activeTrade.currentPrice).toFixed(8)}</p>
-                        <p><strong>Quantity:</strong> ${activeTrade.quantity}</p>
-                        <p class="profit-loss ${(activeTrade.currentPrice - activeTrade.entryPrice) >= 0 ? 'profit' : 'loss'}">
-                            <strong>Current P/L:</strong> ${((activeTrade.currentPrice - activeTrade.entryPrice) / activeTrade.entryPrice * 100).toFixed(2)}%
-                        </p>
-                        <div class="time-info">
-                            <p><strong>Time Elapsed:</strong> ${formatMinutes(activeTrade.timeElapsed)} minutes</p>
-                            <p><strong>Custom Duration:</strong> ${formatHours(activeTrade.customDuration)} hours</p>
-                            <p><strong>Time Remaining:</strong> ${formatHours(activeTrade.timeRemaining)} hours</p>
-                            <p class="${activeTrade.trailingStopDisabled ? 'warning-text' : 'success-text'}">
-                                <strong>Trailing Stop:</strong> ${activeTrade.trailingStopDisabled ? 'Disabled (Manual Control)' : 'Active'}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="trade-controls">
-                        <div class="control-buttons">
-                            <button onclick="handleExtendTime(120)" class="action-button extend-time">
-                                +2 Hours
-                            </button>
-                            <button onclick="executeManualSell()" class="action-button sell-button">
-                                Execute Sell
-                            </button>
-                            ${activeTrade.trailingStopDisabled ? 
-                                `<button onclick="toggleTrailingStop(false)" class="action-button enable-stop">
-                                    Enable Trailing Stop
-                                 </button>` :
-                                `<button onclick="toggleTrailingStop(true)" class="action-button disable-stop">
-                                    Disable Trailing Stop
-                                 </button>`
-                            }
-                        </div>
-                        <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
-                    </div>
-                </div>
-                `;
-            
-            elements.activeTrade.innerHTML = activeTradeHtml;
-        }
     } catch (error) {
-        // Just log to console, don't show error messages in UI
         console.error('Dashboard update error:', error);
     }
 }
@@ -589,7 +537,7 @@ function initializeApp() {
     setupActivityListeners();
     setupNavigation();
 
-    switch (currentPage) {
+switch (currentPage) {
         case 'index.html':
             // First load active trade separately and quickly
             fetchData('/api/active-trade')
@@ -601,9 +549,19 @@ function initializeApp() {
                 })
                 .catch(console.error);
 
-            // Then start the full dashboard update
+            // Set up regular updates for active trade and dashboard separately
             updateDashboard();
             dashboardInterval = setInterval(updateDashboard, 10000);
+            setInterval(() => {
+                fetchData('/api/active-trade')
+                    .then(activeTrade => {
+                        const element = document.getElementById('active-trade');
+                        if (element) {
+                            updateActiveTrade(activeTrade, element);
+                        }
+                    })
+                    .catch(console.error);
+            }, 2000); // Update active trade more frequently
             break;
         case 'recent-trades.html':
             loadRecentTrades();
