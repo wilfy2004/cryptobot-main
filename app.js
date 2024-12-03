@@ -250,13 +250,42 @@ async function getBotStatus() {
     }
 }
 
+
+function formatMinutes(minutes) {
+    return minutes ? minutes.toFixed(1) : '0';
+}
+
+function formatHours(hours) {
+    return hours ? hours.toFixed(2) : '0';
+}
+
+function formatDuration(ms) {
+    if (!ms) return '0h 0m';
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    return `${hours}h ${minutes}m`;
+}
+
+async function handleExtendTime(minutes) {
+    if (!confirm(`Are you sure you want to extend the trailing stop duration by ${minutes} minutes?`)) {
+        return;
+    }
+
+    try {
+        const result = await updateTradeTiming(minutes);
+        alert('Duration updated successfully');
+        updateDashboard(); // Refresh the dashboard to show new duration
+    } catch (error) {
+        alert('Failed to update duration. Please try again.');
+    }
+}
 async function updateDashboard() {
     try {
         // Only fetch account info and performance metrics, not active trade
         const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
             fetchData('/api/performance-metrics').catch(e => ({ error: e })),
-            getBotStatus().catch(e => ({ currentState: 'unknown' }))
+            getBotStatus().catch(e => ({ currentState: 'unknown' }))  // Added this line for bot status
         ]);
 
         // Get all elements except active trade
@@ -268,9 +297,9 @@ async function updateDashboard() {
 
         // Handle individual section updates separately to prevent total failure
         if (elements.botControl) {
-            const isActive = botStatus.currentState === 'active';
-            const statusClass = isActive ? 'status-active' : 'status-paused';
-            const statusText = botStatus.currentState === 'unknown' ? 'Unknown' : 
+            const isActive = botStatus.currentState === 'active';  // Added this line
+            const statusClass = isActive ? 'status-active' : 'status-paused';  // Added this line
+            const statusText = botStatus.currentState === 'unknown' ? 'Unknown' :  // Added this line
                              botStatus.currentState.charAt(0).toUpperCase() + botStatus.currentState.slice(1);
             
             elements.botControl.innerHTML = `
@@ -314,35 +343,6 @@ async function updateDashboard() {
         console.error('Dashboard update error:', error);
     }
 }
-function formatMinutes(minutes) {
-    return minutes ? minutes.toFixed(1) : '0';
-}
-
-function formatHours(hours) {
-    return hours ? hours.toFixed(2) : '0';
-}
-
-function formatDuration(ms) {
-    if (!ms) return '0h 0m';
-    const hours = Math.floor(ms / 3600000);
-    const minutes = Math.floor((ms % 3600000) / 60000);
-    return `${hours}h ${minutes}m`;
-}
-
-async function handleExtendTime(minutes) {
-    if (!confirm(`Are you sure you want to extend the trailing stop duration by ${minutes} minutes?`)) {
-        return;
-    }
-
-    try {
-        const result = await updateTradeTiming(minutes);
-        alert('Duration updated successfully');
-        updateDashboard(); // Refresh the dashboard to show new duration
-    } catch (error) {
-        alert('Failed to update duration. Please try again.');
-    }
-}
-
 async function loadRecentTrades() {
     try {
         const recentTrades = await fetchData('/api/recent-trades');
