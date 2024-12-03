@@ -12,7 +12,30 @@ function handleApiError(error, context) {
         alert(`${context}: ${error.message}`);
     }
 }
+async function updateBotStatus() {
+    try {
+        const response = await fetchData('/api/bot-control');
+        const statusElement = document.getElementById('bot-status');
+        
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <div class="status-indicator ${response.currentState === 'active' ? 'status-active' : 'status-paused'}">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Status: ${response.currentState === 'active' ? 'Active' : 'Paused'}</span>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error updating bot status:', error);
+    }
+}
 
+// Add this to your initializeApp function in the 'index.html' case
+if (currentPage === 'index.html') {
+    // Existing code...
+    updateBotStatus(); // Initial update
+    setInterval(updateBotStatus, 2000); // Update every 2 seconds
+}
 async function pauseBot() {
     if (!confirm('Are you sure you want to pause the trading bot?')) {
         return;
