@@ -34,7 +34,6 @@ async function pauseBot() {
         }
         
         alert('Bot paused successfully');
-        updateDashboard(); // Update the dashboard to reflect the new status
     } catch (error) {
         alert('Failed to pause bot');
     }
@@ -61,7 +60,6 @@ async function resumeBot() {
         }
         
         alert('Bot resumed successfully');
-        updateDashboard(); // Update the dashboard to reflect the new status
     } catch (error) {
         alert('Failed to resume bot');
     }
@@ -237,30 +235,18 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Fetch all necessary data including bot status
-        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
+        // Only fetch account info and performance metrics, not active trade
+        const [accountInfo, performanceMetrics] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
-            fetchData('/api/bot-control').catch(e => ({ error: e }))
+            fetchData('/api/performance-metrics').catch(e => ({ error: e }))
         ]);
 
-        // Get all elements
+        // Get all elements except active trade
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
-            botControl: document.getElementById('bot-control'),
-            botStatus: document.getElementById('bot-status')
+            botControl: document.getElementById('bot-control')
         };
-
-        // Update bot status
-        if (elements.botStatus && botStatus && !botStatus.error) {
-            elements.botStatus.innerHTML = `
-                <div class="status-indicator ${botStatus.currentState === 'active' ? 'status-active' : 'status-paused'}">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Status: ${botStatus.currentState === 'active' ? 'Active' : 'Paused'}</span>
-                </div>
-            `;
-        }
 
         // Handle individual section updates separately to prevent total failure
         if (elements.botControl) {
@@ -299,6 +285,35 @@ async function updateDashboard() {
         }
     } catch (error) {
         console.error('Dashboard update error:', error);
+    }
+}
+
+function formatMinutes(minutes) {
+    return minutes ? minutes.toFixed(1) : '0';
+}
+
+function formatHours(hours) {
+    return hours ? hours.toFixed(2) : '0';
+}
+
+function formatDuration(ms) {
+    if (!ms) return '0h 0m';
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    return `${hours}h ${minutes}m`;
+}
+
+async function handleExtendTime(minutes) {
+    if (!confirm(`Are you sure you want to extend the trailing stop duration by ${minutes} minutes?`)) {
+        return;
+    }
+
+    try {
+        const result = await updateTradeTiming(minutes);
+        alert('Duration updated successfully');
+        updateDashboard(); // Refresh the dashboard to show new duration
+    } catch (error) {
+        alert('Failed to update duration. Please try again.');
     }
 }
 
