@@ -55,6 +55,49 @@
     margin: 0;
     color: #333;
 }
+.status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f5f5f5;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-active .status-dot {
+    background-color: #4CAF50;
+    box-shadow: 0 0 8px #4CAF50;
+}
+
+.status-paused .status-dot {
+    background-color: #FFA500;
+    box-shadow: 0 0 8px #FFA500;
+}
+
+.status-text {
+    font-weight: bold;
+}
+
+.status-active .status-text {
+    color: #4CAF50;
+}
+
+.status-paused .status-text {
+    color: #FFA500;
+}
+
+.control-buttons button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 /* Add these new styles for the table container */
 .table-container {
     overflow-x: auto;
