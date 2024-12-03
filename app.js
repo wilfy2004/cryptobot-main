@@ -232,27 +232,39 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Only fetch account info and performance metrics, not active trade
-        const [accountInfo, performanceMetrics] = await Promise.all([
+        // Fetch all necessary data including bot status
+        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e }))
+            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
+            fetchData('/api/bot-status').catch(e => ({ error: e }))  // New endpoint to fetch bot status
         ]);
 
-        // Get all elements except active trade
+        // Get all elements
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
             botControl: document.getElementById('bot-control')
         };
 
-        // Handle individual section updates separately to prevent total failure
+        // Update bot control section with status indicator
         if (elements.botControl) {
+            const statusClass = botStatus?.isActive ? 'status-active' : 'status-paused';
+            const statusText = botStatus?.isActive ? 'Active' : 'Paused';
+            
             elements.botControl.innerHTML = `
                 <div class="bot-control-card">
                     <h2>Bot Control</h2>
+                    <div class="status-indicator ${statusClass}">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Status: ${statusText}</span>
+                    </div>
                     <div class="control-buttons">
-                        <button onclick="pauseBot()" class="action-button pause-bot">Pause Bot</button>
-                        <button onclick="resumeBot()" class="action-button resume-bot">Resume Bot</button>
+                        <button onclick="pauseBot()" class="action-button pause-bot" ${!botStatus?.isActive ? 'disabled' : ''}>
+                            Pause Bot
+                        </button>
+                        <button onclick="resumeBot()" class="action-button resume-bot" ${botStatus?.isActive ? 'disabled' : ''}>
+                            Resume Bot
+                        </button>
                     </div>
                 </div>
             `;
