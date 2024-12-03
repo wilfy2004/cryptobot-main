@@ -230,13 +230,33 @@ async function executeManualSell() {
     }
 }
 // Main dashboard update function
+async function getBotStatus() {
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/bot-control`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching bot status:', error);
+        return { currentState: 'unknown' };
+    }
+}
+
 async function updateDashboard() {
     try {
         // Fetch all necessary data including bot status
         const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
             fetchData('/api/performance-metrics').catch(e => ({ error: e })),
-            fetchData('/api/bot-status').catch(e => ({ error: e }))  // New endpoint to fetch bot status
+            getBotStatus().catch(e => ({ currentState: 'unknown' }))
         ]);
 
         // Get all elements
@@ -248,8 +268,10 @@ async function updateDashboard() {
 
         // Update bot control section with status indicator
         if (elements.botControl) {
-            const statusClass = botStatus?.isActive ? 'status-active' : 'status-paused';
-            const statusText = botStatus?.isActive ? 'Active' : 'Paused';
+            const isActive = botStatus.currentState === 'active';
+            const statusClass = isActive ? 'status-active' : 'status-paused';
+            const statusText = botStatus.currentState === 'unknown' ? 'Unknown' : 
+                             botStatus.currentState.charAt(0).toUpperCase() + botStatus.currentState.slice(1);
             
             elements.botControl.innerHTML = `
                 <div class="bot-control-card">
@@ -259,14 +281,22 @@ async function updateDashboard() {
                         <span class="status-text">Status: ${statusText}</span>
                     </div>
                     <div class="control-buttons">
-                        <button onclick="pauseBot()" class="action-button pause-bot" ${!botStatus?.isActive ? 'disabled' : ''}>
+                        <button onclick="pauseBot()" class="action-button pause-bot" ${!isActive ? 'disabled' : ''}>
                             Pause Bot
                         </button>
-                        <button onclick="resumeBot()" class="action-button resume-bot" ${botStatus?.isActive ? 'disabled' : ''}>
+                        <button onclick="resumeBot()" class="action-button resume-bot" ${isActive ? 'disabled' : ''}>
                             Resume Bot
                         </button>
                     </div>
                 </div>
+            `;
+        }
+
+        // Update account info
+        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
+            elements.accountInfo.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
         }
 
@@ -282,14 +312,6 @@ async function updateDashboard() {
                 <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
                 <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
                 <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
-            `;
-        }
-
-        // Update account info
-        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
-            elements.accountInfo.innerHTML = `
-                <h2>Account Info</h2>
-                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
         }
     } catch (error) {
