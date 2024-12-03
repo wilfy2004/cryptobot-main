@@ -440,21 +440,27 @@ async function showHardResetConfirmation() {
 }
 
 async function performHardReset() {
+    console.log('performHardReset called');
     try {
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_URL}/api/hard-reset`, {
-            method: 'POST',
+            method: 'POST',  // Change to POST to match your Node-RED endpoint
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
+
+        console.log('Hard reset response:', response);
 
         if (!response.ok) {
             throw new Error(`Hard reset failed with status: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('Hard reset successful:', data);
         alert('Hard reset performed successfully');
-        location.reload();
+        window.location.reload(); // Reload the page to reflect changes
     } catch (error) {
         console.error('Hard reset error:', error);
         alert(`Hard reset failed. Error: ${error.message}`);
@@ -504,15 +510,21 @@ function setupNavigation() {
     const activeCoinChartButton = document.getElementById('active-coin-chart-button');
     const logoutButton = document.getElementById('logout-button');
 
+    if (hardResetButton) {
+        hardResetButton.addEventListener('click', async () => {
+            console.log('Hard reset button clicked');
+            if (confirm('Are you sure you want to perform a hard reset? This will reset all monitoring variables.')) {
+                await performHardReset();
+            }
+        });
+    }
+
     if (recentTradesButton) recentTradesButton.addEventListener('click', () => window.location.href = 'recent-trades.html');
-    if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', () => {
-        console.log('Monitored Coins button clicked');
-        window.location.href = 'monitored-coins.html';
-    });
-    if (hardResetButton) hardResetButton.addEventListener('click', () => window.location.href = 'hard-reset-confirm.html');
+    if (monitoredCoinsButton) monitoredCoinsButton.addEventListener('click', () => window.location.href = 'monitored-coins.html');
     if (activeCoinChartButton) activeCoinChartButton.addEventListener('click', () => window.location.href = 'active-coin-chart.html');
     if (logoutButton) logoutButton.addEventListener('click', handleLogout);
 }
+
 
 function initializeLoginPage() {
     const loginForm = document.getElementById('login-form');
