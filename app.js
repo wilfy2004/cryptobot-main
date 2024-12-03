@@ -266,35 +266,6 @@ async function updateDashboard() {
             botControl: document.getElementById('bot-control')
         };
 
-        // Update account info
-        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
-            elements.accountInfo.innerHTML = `
-                <div class="info-card">
-                    <h2>Account Info</h2>
-                    <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-                </div>
-            `;
-        }
-
-        // Update performance metrics
-        if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
-            elements.performanceMetrics.innerHTML = `
-                <div class="metrics-card">
-                    <h2>Performance Metrics</h2>
-                    <div class="metrics-content">
-                        <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
-                        <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
-                        <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
-                        <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
-                        <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
-                        <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
-                        <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
-                        <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
-                    </div>
-                </div>
-            `;
-        }
-
         // Update bot control section with status indicator
         if (elements.botControl) {
             const isActive = botStatus.currentState === 'active';
@@ -310,27 +281,35 @@ async function updateDashboard() {
                         <span class="status-text">Status: ${statusText}</span>
                     </div>
                     <div class="control-buttons">
-                        <button onclick="pauseBot()" class="action-button pause-bot" ${!isActive ? 'disabled' : ''}>
-                            Pause Bot
-                        </button>
-                        <button onclick="resumeBot()" class="action-button resume-bot" ${isActive ? 'disabled' : ''}>
-                            Resume Bot
-                        </button>
+                        <button onclick="pauseBot()" class="action-button pause-bot">Pause Bot</button>
+                        <button onclick="resumeBot()" class="action-button resume-bot">Resume Bot</button>
                     </div>
                 </div>
             `;
         }
 
-        // Refresh the active trade if it exists
-        const activeTradeElement = document.getElementById('active-trade');
-        if (activeTradeElement) {
-            fetchData('/api/active-trade')
-                .then(activeTrade => {
-                    updateActiveTrade(activeTrade, activeTradeElement);
-                })
-                .catch(console.error);
+        // Update account info
+        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
+            elements.accountInfo.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            `;
         }
 
+        // Update performance metrics
+        if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
+            elements.performanceMetrics.innerHTML = `
+                <h2>Performance Metrics</h2>
+                <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
+                <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
+                <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
+                <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
+                <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
+                <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
+                <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
+                <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
+            `;
+        }
     } catch (error) {
         console.error('Dashboard update error:', error);
     }
