@@ -444,7 +444,7 @@ async function performHardReset() {
     try {
         const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_URL}/api/hard-reset`, {
-            method: 'POST',  // Change to POST to match your Node-RED endpoint
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -458,9 +458,20 @@ async function performHardReset() {
         }
 
         const data = await response.json();
-        console.log('Hard reset successful:', data);
-        alert('Hard reset performed successfully');
-        window.location.reload(); // Reload the page to reflect changes
+        console.log('Hard reset response data:', data);
+
+        if (data.success) {
+            alert('Hard reset completed successfully: ' + data.message);
+            // Verify the reset by checking monitored coins
+            const monitoredCoins = await fetchData('/api/monitored-coins');
+            console.log('Post-reset monitored coins:', monitoredCoins);
+            if (monitoredCoins.coins && monitoredCoins.coins.length === 0) {
+                console.log('Verified: No monitored coins after reset');
+            }
+            window.location.reload();
+        } else {
+            throw new Error(data.message || 'Hard reset failed');
+        }
     } catch (error) {
         console.error('Hard reset error:', error);
         alert(`Hard reset failed. Error: ${error.message}`);
