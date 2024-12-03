@@ -408,31 +408,6 @@ async function loadMonitoredCoins() {
     }
 }
 
-function loadHardResetInfo() {
-    const resetVariables = [
-        'monitoringCoins',
-        'dippedCoins',
-        'lastDipTime',
-        'trailingStops'
-    ];
-    const resetInfoHtml = `
-        <h2>Hard Reset Confirmation</h2>
-        <p>Warning: This action will reset the following variables:</p>
-        <ul>
-            ${resetVariables.map(variable => `<li>${variable}</li>`).join('')}
-        </ul>
-        <p>Are you sure you want to proceed with the hard reset?</p>
-        <button id="confirm-hard-reset">Confirm Hard Reset</button>
-        <button id="cancel-hard-reset">Cancel</button>
-    `;
-    const contentElement = document.getElementById('content');
-    if (contentElement) {
-        contentElement.innerHTML = resetInfoHtml;
-        document.getElementById('confirm-hard-reset').addEventListener('click', performHardReset);
-        document.getElementById('cancel-hard-reset').addEventListener('click', () => window.location.href = 'index.html');
-    }
-}
-
 async function showHardResetConfirmation() {
     if (confirm('Are you sure you want to perform a hard reset? This will reset all monitoring variables.')) {
         await performHardReset();
@@ -600,9 +575,6 @@ function initializeApp() {
         case 'monitored-coins.html':
             console.log('Loading monitored coins...');
             loadMonitoredCoins();
-            break;
-        case 'hard-reset-confirm.html':
-            loadHardResetInfo();
             break;
         case 'active-coin-chart.html':
             loadActiveCoinChart();
