@@ -252,21 +252,21 @@ async function getBotStatus() {
 
 async function updateDashboard() {
     try {
-        // Fetch all necessary data including bot status
+        // Only fetch account info and performance metrics, not active trade
         const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
             fetchData('/api/performance-metrics').catch(e => ({ error: e })),
             getBotStatus().catch(e => ({ currentState: 'unknown' }))
         ]);
 
-        // Get all elements
+        // Get all elements except active trade
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
             botControl: document.getElementById('bot-control')
         };
 
-        // Update bot control section with status indicator
+        // Handle individual section updates separately to prevent total failure
         if (elements.botControl) {
             const isActive = botStatus.currentState === 'active';
             const statusClass = isActive ? 'status-active' : 'status-paused';
@@ -288,14 +288,6 @@ async function updateDashboard() {
             `;
         }
 
-        // Update account info
-        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
-            elements.accountInfo.innerHTML = `
-                <h2>Account Info</h2>
-                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-            `;
-        }
-
         // Update performance metrics
         if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
             elements.performanceMetrics.innerHTML = `
@@ -308,6 +300,14 @@ async function updateDashboard() {
                 <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
                 <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
                 <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
+            `;
+        }
+
+        // Update account info
+        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
+            elements.accountInfo.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
             `;
         }
     } catch (error) {
