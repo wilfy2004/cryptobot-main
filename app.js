@@ -12,30 +12,7 @@ function handleApiError(error, context) {
         alert(`${context}: ${error.message}`);
     }
 }
-async function updateBotStatus() {
-    try {
-        const response = await fetchData('/api/bot-control');
-        const statusElement = document.getElementById('bot-status');
-        
-        if (statusElement) {
-            statusElement.innerHTML = `
-                <div class="status-indicator ${response.currentState === 'active' ? 'status-active' : 'status-paused'}">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Status: ${response.currentState === 'active' ? 'Active' : 'Paused'}</span>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error updating bot status:', error);
-    }
-}
 
-// Add this to your initializeApp function in the 'index.html' case
-if (currentPage === 'index.html') {
-    // Existing code...
-    updateBotStatus(); // Initial update
-    setInterval(updateBotStatus, 2000); // Update every 2 seconds
-}
 async function pauseBot() {
     if (!confirm('Are you sure you want to pause the trading bot?')) {
         return;
@@ -57,6 +34,7 @@ async function pauseBot() {
         }
         
         alert('Bot paused successfully');
+        updateDashboard(); // Update the dashboard to reflect the new status
     } catch (error) {
         alert('Failed to pause bot');
     }
@@ -83,10 +61,12 @@ async function resumeBot() {
         }
         
         alert('Bot resumed successfully');
+        updateDashboard(); // Update the dashboard to reflect the new status
     } catch (error) {
         alert('Failed to resume bot');
     }
 }
+
 async function fetchData(endpoint) {
     const token = localStorage.getItem('auth_token');
     if (!token) {
@@ -140,7 +120,7 @@ async function toggleTrailingStop(disable) {
         if (!response.ok) {
             throw new Error(result.error || 'Failed to update trailing stop status');
         }
-        
+
     } catch (error) {
         console.error('Error updating trailing stop:', error);
         alert(`Failed to update trailing stop: ${error.message}`);
@@ -173,6 +153,7 @@ async function updateTradeTiming(minutes) {
         throw error;
     }
 }
+
 function resetLogoutTimer() {
     if (logoutTimer) {
         clearTimeout(logoutTimer);
@@ -252,70 +233,34 @@ async function executeManualSell() {
         handleApiError(error, 'Manual sell execution failed');
     }
 }
+
 // Main dashboard update function
-async function getBotStatus() {
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/bot-control`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return response.json();
-    } catch (error) {
-        console.error('Error fetching bot status:', error);
-        return { currentState: 'unknown' };
-    }
-}
-
-
-function formatMinutes(minutes) {
-    return minutes ? minutes.toFixed(1) : '0';
-}
-
-function formatHours(hours) {
-    return hours ? hours.toFixed(2) : '0';
-}
-
-function formatDuration(ms) {
-    if (!ms) return '0h 0m';
-    const hours = Math.floor(ms / 3600000);
-    const minutes = Math.floor((ms % 3600000) / 60000);
-    return `${hours}h ${minutes}m`;
-}
-
-async function handleExtendTime(minutes) {
-    if (!confirm(`Are you sure you want to extend the trailing stop duration by ${minutes} minutes?`)) {
-        return;
-    }
-
-    try {
-        const result = await updateTradeTiming(minutes);
-        alert('Duration updated successfully');
-        updateDashboard(); // Refresh the dashboard to show new duration
-    } catch (error) {
-        alert('Failed to update duration. Please try again.');
-    }
-}
 async function updateDashboard() {
     try {
-        // Only fetch account info and performance metrics, not active trade
-        const [accountInfo, performanceMetrics] = await Promise.all([
+        // Fetch all necessary data including bot status
+        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e }))
+            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
+            fetchData('/api/bot-control').catch(e => ({ error: e }))
         ]);
 
-        // Get all elements except active trade
+        // Get all elements
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
-            botControl: document.getElementById('bot-control')
+            botControl: document.getElementById('bot-control'),
+            botStatus: document.getElementById('bot-status')
         };
+
+        // Update bot status
+        if (elements.botStatus && botStatus && !botStatus.error) {
+            elements.botStatus.innerHTML = `
+                <div class="status-indicator ${botStatus.currentState === 'active' ? 'status-active' : 'status-paused'}">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Status: ${botStatus.currentState === 'active' ? 'Active' : 'Paused'}</span>
+                </div>
+            `;
+        }
 
         // Handle individual section updates separately to prevent total failure
         if (elements.botControl) {
@@ -356,6 +301,7 @@ async function updateDashboard() {
         console.error('Dashboard update error:', error);
     }
 }
+
 async function loadRecentTrades() {
     try {
         const recentTrades = await fetchData('/api/recent-trades');
@@ -396,6 +342,7 @@ async function loadRecentTrades() {
         document.getElementById('content').innerHTML = '<p>Error loading recent trades. Please try again.</p>';
     }
 }
+
 async function loadMonitoredCoins() {
     try {
         const response = await fetchData('/api/monitored-coins');
@@ -445,6 +392,7 @@ async function loadMonitoredCoins() {
         document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
     }
 }
+
 function loadHardResetInfo() {
     const resetVariables = [
         'monitoringCoins',
@@ -469,6 +417,7 @@ function loadHardResetInfo() {
         document.getElementById('cancel-hard-reset').addEventListener('click', () => window.location.href = 'index.html');
     }
 }
+
 async function showHardResetConfirmation() {
     if (confirm('Are you sure you want to perform a hard reset? This will reset all monitoring variables.')) {
         await performHardReset();
@@ -496,6 +445,7 @@ async function performHardReset() {
         alert(`Hard reset failed. Error: ${error.message}`);
     }
 }
+
 function loadActiveCoinChart() {
     fetchData('/api/active-trade')
         .then(activeTrade => {
@@ -621,7 +571,7 @@ function initializeApp() {
             break;
     }
 }
-            
+
 function updateActiveTrade(activeTrade, element) {
     const activeTradeHtml = (!activeTrade || activeTrade.error)
         ? '<div class="no-trade-card"><h2>No Active Trade</h2></div>'
@@ -669,4 +619,5 @@ function updateActiveTrade(activeTrade, element) {
     
     element.innerHTML = activeTradeHtml;
 }
+
 document.addEventListener('DOMContentLoaded', initializeApp);
