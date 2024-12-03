@@ -282,9 +282,10 @@ async function handleExtendTime(minutes) {
 async function updateDashboard() {
     try {
         // Only fetch account info and performance metrics, not active trade
-        const [accountInfo, performanceMetrics] = await Promise.all([
+        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e }))
+            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
+            getBotStatus().catch(e => ({ currentState: 'unknown' }))  // Added this line
         ]);
 
         // Get all elements except active trade
@@ -299,6 +300,10 @@ async function updateDashboard() {
             elements.botControl.innerHTML = `
                 <div class="bot-control-card">
                     <h2>Bot Control</h2>
+                    <div class="status-indicator ${botStatus.currentState === 'active' ? 'status-active' : 'status-paused'}">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Status: ${botStatus.currentState === 'active' ? 'Active' : 'Paused'}</span>
+                    </div>
                     <div class="control-buttons">
                         <button onclick="pauseBot()" class="action-button pause-bot">Pause Bot</button>
                         <button onclick="resumeBot()" class="action-button resume-bot">Resume Bot</button>
