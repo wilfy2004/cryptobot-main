@@ -282,10 +282,9 @@ async function handleExtendTime(minutes) {
 async function updateDashboard() {
     try {
         // Only fetch account info and performance metrics, not active trade
-        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
+        const [accountInfo, performanceMetrics] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
-            getBotStatus().catch(e => ({ currentState: 'unknown' }))  // Added this line for bot status
+            fetchData('/api/performance-metrics').catch(e => ({ error: e }))
         ]);
 
         // Get all elements except active trade
@@ -297,18 +296,9 @@ async function updateDashboard() {
 
         // Handle individual section updates separately to prevent total failure
         if (elements.botControl) {
-            const isActive = botStatus.currentState === 'active';  // Added this line
-            const statusClass = isActive ? 'status-active' : 'status-paused';  // Added this line
-            const statusText = botStatus.currentState === 'unknown' ? 'Unknown' :  // Added this line
-                             botStatus.currentState.charAt(0).toUpperCase() + botStatus.currentState.slice(1);
-            
             elements.botControl.innerHTML = `
                 <div class="bot-control-card">
                     <h2>Bot Control</h2>
-                    <div class="status-indicator ${statusClass}">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Status: ${statusText}</span>
-                    </div>
                     <div class="control-buttons">
                         <button onclick="pauseBot()" class="action-button pause-bot">Pause Bot</button>
                         <button onclick="resumeBot()" class="action-button resume-bot">Resume Bot</button>
