@@ -43,25 +43,33 @@ async function toggleBot(pause) {
 }
 
 async function fetchData(endpoint) {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-        throw new Error('No authentication token found');
-    }
-    
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`
+    try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            throw new Error('No authentication token found');
         }
-    });
-    
-    if (!response.ok) {
-        if (response.status === 401) {
-            handleLogout();
+        
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                handleLogout();
+            }
+            // Return a default object instead of throwing
+            return { error: `HTTP error! status: ${response.status}` };
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const data = await response.json().catch(() => ({}));
+        return data || {};  // Return empty object if null/undefined
+        
+    } catch (error) {
+        console.error(`Error fetching ${endpoint}:`, error);
+        return { error: error.message };  // Return error object instead of throwing
     }
-    
-    return response.json();
 }
 
 async function toggleTrailingStop(disable) {
@@ -212,35 +220,42 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Get elements first to avoid unnecessary fetches if elements don't exist
+        // Update bot status first
+        const botStatus = await fetchData('/api/bot-control');
+        const currentState = botStatus?.currentState || 'active';
+
+        // Get other data asynchronously
+        const [accountInfo, performanceMetrics] = await Promise.all([
+            fetchData('/api/account-info'),
+            fetchData('/api/performance-metrics')
+        ]);
+
+        // Update UI elements if they exist
         const elements = {
+            botControl: document.getElementById('bot-control'),
             accountInfo: document.getElementById('account-info'),
-            performanceMetrics: document.getElementById('performance-metrics'),
-            botControl: document.getElementById('bot-control')
+            performanceMetrics: document.getElementById('performance-metrics')
         };
 
-        // Load bot control status first - most important
+        // Update bot control first
         if (elements.botControl) {
-            try {
-                const botStatus = await fetchData('/api/bot-control');
-                const currentState = botStatus?.currentState || 'active';
-                elements.botControl.innerHTML = `
-                    <div class="bot-control-card">
-                        <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
-                            <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
-                                ${currentState === 'active' ? '🟢' : '🔴'}
-                            </span>
-                            <span class="status-text">
-                                BOT STATUS: ${currentState.toUpperCase()}
-                            </span>
-                        </div>
-                        <button onclick="toggleBot(${currentState === 'active'})" 
-                                class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                            ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
-                        </button>
+            elements.botControl.innerHTML = `
+                <div class="bot-control-card">
+                    <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
+                        <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
+                            ${currentState === 'active' ? '🟢' : '🔴'}
+                        </span>
+                        <span class="status-text">
+                            BOT STATUS: ${currentState.toUpperCase()}
+                        </span>
                     </div>
-                `;
-            } catch (error) {
+                    <button onclick="toggleBot(${currentState === 'active'})" 
+                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                        ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
+                    </button>
+                </div>
+            `;
+        } catch (error) {
                 console.error('Error loading bot status:', error);
                 // Set default active state if error
                 elements.botControl.innerHTML = `
