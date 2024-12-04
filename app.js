@@ -13,8 +13,8 @@ function handleApiError(error, context) {
     }
 }
 
-async function pauseBot() {
-    if (!confirm('Are you sure you want to pause the trading bot?')) {
+async function toggleBot(pause) {
+    if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
         return;
     }
 
@@ -26,42 +26,19 @@ async function pauseBot() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ command: 'pause' })
+            body: JSON.stringify({
+                command: pause ? 'pause' : 'resume'
+            })
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to pause bot');
-        }
-        
-        alert('Bot paused successfully');
-    } catch (error) {
-        alert('Failed to pause bot');
-    }
-}
 
-async function resumeBot() {
-    if (!confirm('Are you sure you want to resume the trading bot?')) {
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_URL}/api/bot-control`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ command: 'resume' })
-        });
-        
         if (!response.ok) {
-            throw new Error('Failed to resume bot');
+            throw new Error(`Failed to ${pause ? 'pause' : 'resume'} bot`);
         }
-        
-        alert('Bot resumed successfully');
+
+        await updateDashboard();
     } catch (error) {
-        alert('Failed to resume bot');
+        console.error('Error updating bot status:', error);
+        alert(`Failed to ${pause ? 'pause' : 'resume'} bot: ${error.message}`);
     }
 }
 
@@ -235,10 +212,10 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Only fetch account info and performance metrics, not active trade
-        const [accountInfo, performanceMetrics] = await Promise.all([
+        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e }))
+            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
+            fetchData('/api/bot-control').catch(e => ({ error: e }))
         ]);
 
         // Get all elements except active trade
@@ -248,27 +225,28 @@ async function updateDashboard() {
             botControl: document.getElementById('bot-control')
         };
 
-        // Handle individual section updates separately to prevent total failure
-// Update bot control section
-if (elements.botControl) {
-    const currentState = botStatus?.currentState || 'active';
-    elements.botControl.innerHTML = `
-        <div class="bot-control-card">
-            <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
-                <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
-                    ${currentState === 'active' ? '🟢' : '🔴'}
-                </span>
-                <span class="status-text">
-                    BOT STATUS: ${currentState.toUpperCase()}
-                </span>
-            </div>
-            <button onclick="toggleBot(${currentState === 'active'})" 
-                    class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
-            </button>
-        </div>
-    `;
-}
+        // Update bot control section
+        if (elements.botControl) {
+            const currentState = botStatus?.currentState || 'active';
+            elements.botControl.innerHTML = `
+                <div class="bot-control-card">
+                    <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
+                        <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
+                            ${currentState === 'active' ? '🟢' : '🔴'}
+                        </span>
+                        <span class="status-text">
+                            BOT STATUS: ${currentState.toUpperCase()}
+                        </span>
+                    </div>
+                    <button onclick="toggleBot(${currentState === 'active'})" 
+                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                        ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
+                    </button>
+                </div>
+            `;
+        }
+
+        // Rest of your existing updateDashboard code...
 
         // Update performance metrics
         if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
