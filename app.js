@@ -14,6 +14,8 @@ function handleApiError(error, context) {
 }
 
 async function toggleBot(pause) {
+    alert(`Debug: toggleBot called with pause = ${pause}`); // Mobile debug
+    
     if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
         return;
     }
@@ -31,13 +33,20 @@ async function toggleBot(pause) {
             })
         });
 
+        alert(`Debug: Response status = ${response.status}`); // Mobile debug
+
         if (!response.ok) {
             throw new Error(`Failed to ${pause ? 'pause' : 'resume'} bot`);
         }
 
+        const result = await response.json();
+        alert(`Debug: Toggle result = ${JSON.stringify(result)}`); // Mobile debug
+
+        // Force immediate dashboard update
         await updateDashboard();
+        
     } catch (error) {
-        console.error('Error updating bot status:', error);
+        alert(`Error details: ${error.message}`); // Mobile debug
         alert(`Failed to ${pause ? 'pause' : 'resume'} bot: ${error.message}`);
     }
 }
@@ -220,80 +229,58 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Get elements first to avoid unnecessary fetches if elements don't exist
+        // Get elements
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
             botControl: document.getElementById('bot-control')
         };
 
-        // Load bot control status first - most important
+        // Fetch bot status first and immediately display it
         if (elements.botControl) {
-            try {
-                const botStatus = await fetchData('/api/bot-control');
-                const currentState = botStatus?.currentState || 'active';
-                elements.botControl.innerHTML = `
-                    <div class="bot-control-card">
-                        <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
-                            <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
-                                ${currentState === 'active' ? '🟢' : '🔴'}
-                            </span>
-                            <span class="status-text">
-                                BOT STATUS: ${currentState.toUpperCase()}
-                            </span>
-                        </div>
-                        <button onclick="toggleBot(${currentState === 'active'})" 
-                                class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                            ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
-                        </button>
+            const botStatus = await fetchData('/api/bot-control');
+            const currentState = botStatus?.currentState || 'active';
+            console.log('Bot status:', currentState); // Debug log
+            elements.botControl.innerHTML = `
+                <div class="bot-control-card">
+                    <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
+                        <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
+                            ${currentState === 'active' ? '🟢' : '🔴'}
+                        </span>
+                        <span class="status-text">
+                            BOT STATUS: ${currentState.toUpperCase()}
+                        </span>
                     </div>
-                `;
-            } catch (error) {
-                console.error('Error loading bot status:', error);
-                // Set default active state if error
-                elements.botControl.innerHTML = `
-                    <div class="bot-control-card">
-                        <div class="status-display active">
-                            <span class="status-indicator active">🟢</span>
-                            <span class="status-text">BOT STATUS: ACTIVE</span>
-                        </div>
-                        <button onclick="toggleBot(true)" class="action-button pause-bot">
-                            PAUSE BOT
-                        </button>
-                    </div>
-                `;
-            }
+                    <button onclick="toggleBot(${currentState === 'active'})" 
+                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                        ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
+                    </button>
+                </div>
+            `;
         }
 
-        // Load performance metrics and account info in parallel
-        if (elements.performanceMetrics || elements.accountInfo) {
-            const [accountInfo, performanceMetrics] = await Promise.all([
-                elements.accountInfo ? fetchData('/api/account-info').catch(e => null) : null,
-                elements.performanceMetrics ? fetchData('/api/performance-metrics').catch(e => null) : null
-            ]);
+        // Then fetch other data
+        const accountInfo = await fetchData('/api/account-info');
+        if (elements.accountInfo && accountInfo && accountInfo.balance !== undefined) {
+            elements.accountInfo.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            `;
+        }
 
-            // Update performance metrics if available
-            if (elements.performanceMetrics && performanceMetrics) {
-                elements.performanceMetrics.innerHTML = `
-                    <h2>Performance Metrics</h2>
-                    <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
-                    <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
-                    <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
-                    <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
-                    <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
-                    <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
-                    <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
-                    <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
-                `;
-            }
-
-            // Update account info if available
-            if (elements.accountInfo && accountInfo && accountInfo.balance !== undefined) {
-                elements.accountInfo.innerHTML = `
-                    <h2>Account Info</h2>
-                    <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-                `;
-            }
+        const performanceMetrics = await fetchData('/api/performance-metrics');
+        if (elements.performanceMetrics && performanceMetrics) {
+            elements.performanceMetrics.innerHTML = `
+                <h2>Performance Metrics</h2>
+                <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
+                <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
+                <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
+                <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
+                <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
+                <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
+                <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
+                <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
+            `;
         }
 
     } catch (error) {
