@@ -229,17 +229,19 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
+        const [accountInfo, performanceMetrics, botStatus, activeTrade] = await Promise.all([
             fetchData('/api/account-info').catch(e => ({ error: e })),
             fetchData('/api/performance-metrics').catch(e => ({ error: e })),
-            fetchData('/api/bot-control').catch(e => ({ error: e }))
+            fetchData('/api/bot-control').catch(e => ({ error: e })),
+            fetchData('/api/active-trade').catch(e => ({ error: e }))
         ]);
 
         // Get elements
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
-            botControl: document.getElementById('bot-control')
+            botControl: document.getElementById('bot-control'),
+            activeTrade: document.getElementById('active-trade')
         };
 
         // Update bot control section
@@ -286,6 +288,15 @@ async function updateDashboard() {
             `;
         }
 
+        // Update active trade section only if there is an active trade
+        if (elements.activeTrade) {
+            if (activeTrade && !activeTrade.error && activeTrade.symbol) {
+                updateActiveTrade(activeTrade, elements.activeTrade);
+            } else {
+                elements.activeTrade.innerHTML = '';  // Clear the section if no active trade
+            }
+        }
+
     } catch (error) {
         console.error('Dashboard update error:', error);
         const errorDiv = document.createElement('div');
@@ -294,7 +305,6 @@ async function updateDashboard() {
         document.body.insertBefore(errorDiv, document.body.firstChild);
     }
 }
-
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
 }
@@ -552,38 +562,27 @@ function initializeApp() {
 
     switch (currentPage) {
         case 'index.html':
-            // Initial dashboard load
-            updateDashboard().catch(console.error);
-            
-            // Set up regular dashboard updates
-            dashboardInterval = setInterval(() => {
-                updateDashboard().catch(console.error);
-            }, 10000);
-
-            // Set up active trade updates only if there is an active trade
-            fetchData('/api/active-trade')
-                .then(activeTrade => {
-                    if (activeTrade && !activeTrade.error) {
-                        setInterval(() => {
-                            const element = document.getElementById('active-trade');
-                            if (element) {
-                                fetchData('/api/active-trade')
-                                    .then(newActiveTrade => {
-                                        if (newActiveTrade && !newActiveTrade.error) {
-                                            updateActiveTrade(newActiveTrade, element);
-                                        } else {
-                                            element.innerHTML = '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error updating active trade:', error);
-                                    });
-                            }
-                        }, 2000);
-                    }
-                })
-                .catch(console.error);
-            break;
+    // Initial dashboard load
+    updateDashboard().catch(console.error);
+    
+    // Set up regular dashboard updates
+    dashboardInterval = setInterval(() => {
+        updateDashboard().catch(console.error);
+    }, 10000);
+    
+    // Set up more frequent active trade updates
+    setInterval(async () => {
+        const element = document.getElementById('active-trade');
+        if (element) {
+            const activeTrade = await fetchData('/api/active-trade');
+            if (activeTrade && !activeTrade.error && activeTrade.symbol) {
+                updateActiveTrade(activeTrade, element);
+            } else {
+                element.innerHTML = '';  // Clear the section if no active trade
+            }
+        }
+    }, 2000);
+    break;
 
         case 'recent-trades.html':
             loadRecentTrades();
