@@ -14,8 +14,6 @@ function handleApiError(error, context) {
 }
 
 async function toggleBot(pause) {
-    alert(`Debug: toggleBot called with pause = ${pause}`); // Mobile debug
-    
     if (!confirm(`Are you sure you want to ${pause ? 'pause' : 'resume'} the trading bot?`)) {
         return;
     }
@@ -33,20 +31,16 @@ async function toggleBot(pause) {
             })
         });
 
-        alert(`Debug: Response status = ${response.status}`); // Mobile debug
-
         if (!response.ok) {
             throw new Error(`Failed to ${pause ? 'pause' : 'resume'} bot`);
         }
 
         const result = await response.json();
-        alert(`Debug: Toggle result = ${JSON.stringify(result)}`); // Mobile debug
-
+        
         // Force immediate dashboard update
         await updateDashboard();
         
     } catch (error) {
-        alert(`Error details: ${error.message}`); // Mobile debug
         alert(`Failed to ${pause ? 'pause' : 'resume'} bot: ${error.message}`);
     }
 }
