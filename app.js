@@ -220,42 +220,35 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        // Update bot status first
-        const botStatus = await fetchData('/api/bot-control');
-        const currentState = botStatus?.currentState || 'active';
-
-        // Get other data asynchronously
-        const [accountInfo, performanceMetrics] = await Promise.all([
-            fetchData('/api/account-info'),
-            fetchData('/api/performance-metrics')
-        ]);
-
-        // Update UI elements if they exist
+        // Get elements first to avoid unnecessary fetches if elements don't exist
         const elements = {
-            botControl: document.getElementById('bot-control'),
             accountInfo: document.getElementById('account-info'),
-            performanceMetrics: document.getElementById('performance-metrics')
+            performanceMetrics: document.getElementById('performance-metrics'),
+            botControl: document.getElementById('bot-control')
         };
 
-        // Update bot control first
+        // Load bot control status first - most important
         if (elements.botControl) {
-            elements.botControl.innerHTML = `
-                <div class="bot-control-card">
-                    <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
-                        <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
-                            ${currentState === 'active' ? '🟢' : '🔴'}
-                        </span>
-                        <span class="status-text">
-                            BOT STATUS: ${currentState.toUpperCase()}
-                        </span>
+            try {
+                const botStatus = await fetchData('/api/bot-control');
+                const currentState = botStatus?.currentState || 'active';
+                elements.botControl.innerHTML = `
+                    <div class="bot-control-card">
+                        <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
+                            <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
+                                ${currentState === 'active' ? '🟢' : '🔴'}
+                            </span>
+                            <span class="status-text">
+                                BOT STATUS: ${currentState.toUpperCase()}
+                            </span>
+                        </div>
+                        <button onclick="toggleBot(${currentState === 'active'})" 
+                                class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                            ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
+                        </button>
                     </div>
-                    <button onclick="toggleBot(${currentState === 'active'})" 
-                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                        ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
-                    </button>
-                </div>
-            `;
-        } catch (error) {
+                `;
+            } catch (error) {
                 console.error('Error loading bot status:', error);
                 // Set default active state if error
                 elements.botControl.innerHTML = `
@@ -307,6 +300,7 @@ async function updateDashboard() {
         console.error('Dashboard update error:', error);
     }
 }
+
 
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
