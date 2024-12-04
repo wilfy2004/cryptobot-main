@@ -212,64 +212,82 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
-        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
-            fetchData('/api/account-info').catch(e => ({ error: e })),
-            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
-            fetchData('/api/bot-control').catch(e => ({ error: e }))
-        ]);
-
-        // Get all elements except active trade
+        // Get elements first to avoid unnecessary fetches if elements don't exist
         const elements = {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
             botControl: document.getElementById('bot-control')
         };
 
-        // Update bot control section
+        // Load bot control status first - most important
         if (elements.botControl) {
-            const currentState = botStatus?.currentState || 'active';
-            elements.botControl.innerHTML = `
-                <div class="bot-control-card">
-                    <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
-                        <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
-                            ${currentState === 'active' ? '🟢' : '🔴'}
-                        </span>
-                        <span class="status-text">
-                            BOT STATUS: ${currentState.toUpperCase()}
-                        </span>
+            try {
+                const botStatus = await fetchData('/api/bot-control');
+                const currentState = botStatus?.currentState || 'active';
+                elements.botControl.innerHTML = `
+                    <div class="bot-control-card">
+                        <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
+                            <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
+                                ${currentState === 'active' ? '🟢' : '🔴'}
+                            </span>
+                            <span class="status-text">
+                                BOT STATUS: ${currentState.toUpperCase()}
+                            </span>
+                        </div>
+                        <button onclick="toggleBot(${currentState === 'active'})" 
+                                class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                            ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
+                        </button>
                     </div>
-                    <button onclick="toggleBot(${currentState === 'active'})" 
-                            class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
-                        ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
-                    </button>
-                </div>
-            `;
+                `;
+            } catch (error) {
+                console.error('Error loading bot status:', error);
+                // Set default active state if error
+                elements.botControl.innerHTML = `
+                    <div class="bot-control-card">
+                        <div class="status-display active">
+                            <span class="status-indicator active">🟢</span>
+                            <span class="status-text">BOT STATUS: ACTIVE</span>
+                        </div>
+                        <button onclick="toggleBot(true)" class="action-button pause-bot">
+                            PAUSE BOT
+                        </button>
+                    </div>
+                `;
+            }
         }
 
-        // Rest of your existing updateDashboard code...
+        // Load performance metrics and account info in parallel
+        if (elements.performanceMetrics || elements.accountInfo) {
+            const [accountInfo, performanceMetrics] = await Promise.all([
+                elements.accountInfo ? fetchData('/api/account-info').catch(e => null) : null,
+                elements.performanceMetrics ? fetchData('/api/performance-metrics').catch(e => null) : null
+            ]);
 
-        // Update performance metrics
-        if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
-            elements.performanceMetrics.innerHTML = `
-                <h2>Performance Metrics</h2>
-                <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
-                <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
-                <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
-                <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
-                <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
-                <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
-                <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
-                <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
-            `;
+            // Update performance metrics if available
+            if (elements.performanceMetrics && performanceMetrics) {
+                elements.performanceMetrics.innerHTML = `
+                    <h2>Performance Metrics</h2>
+                    <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
+                    <p>Profitable Trades: ${performanceMetrics.profitableTrades || 0}</p>
+                    <p>Unprofitable Trades: ${performanceMetrics.unprofitableTrades || 0}</p>
+                    <p>Total Gains: $${performanceMetrics.totalGains || '0.00'}</p>
+                    <p>Total Profit: $${performanceMetrics.totalProfit || '0.00'}</p>
+                    <p>Total Losses: $${performanceMetrics.totalLosses || '0.00'}</p>
+                    <p>Win Rate: ${performanceMetrics.winRate || '0.00'}%</p>
+                    <p>Avg Profit %: ${performanceMetrics.avgProfitPercentage || '0.00'}%</p>
+                `;
+            }
+
+            // Update account info if available
+            if (elements.accountInfo && accountInfo && accountInfo.balance !== undefined) {
+                elements.accountInfo.innerHTML = `
+                    <h2>Account Info</h2>
+                    <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+                `;
+            }
         }
 
-        // Update account info
-        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
-            elements.accountInfo.innerHTML = `
-                <h2>Account Info</h2>
-                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-            `;
-        }
     } catch (error) {
         console.error('Dashboard update error:', error);
     }
@@ -532,43 +550,44 @@ function initializeApp() {
 
     switch (currentPage) {
         case 'index.html':
-            // First load active trade separately and quickly
-            fetchData('/api/active-trade')
-                .then(activeTrade => {
-                    const element = document.getElementById('active-trade');
-                    if (element) {
-                        updateActiveTrade(activeTrade, element);
-                    }
-                })
-                .catch(console.error);
+            // Initial load
+            updateDashboard().catch(console.error);
+            
+            // Set up regular updates with error handling
+            dashboardInterval = setInterval(() => {
+                updateDashboard().catch(console.error);
+            }, 10000);
 
-            // Set up regular updates for active trade and dashboard separately
-            updateDashboard();
-            dashboardInterval = setInterval(updateDashboard, 10000);
+            // Handle active trade updates separately
             setInterval(() => {
-                fetchData('/api/active-trade')
-                    .then(activeTrade => {
-                        const element = document.getElementById('active-trade');
-                        if (element) {
+                const element = document.getElementById('active-trade');
+                if (element) {
+                    fetchData('/api/active-trade')
+                        .then(activeTrade => {
                             updateActiveTrade(activeTrade, element);
-                        }
-                    })
-                    .catch(console.error);
+                        })
+                        .catch(error => {
+                            console.error('Error updating active trade:', error);
+                            // Don't update the element on error to preserve last known good state
+                        });
+                }
             }, 2000);
             break;
+
         case 'recent-trades.html':
             loadRecentTrades();
             break;
+            
         case 'monitored-coins.html':
             console.log('Loading monitored coins...');
             loadMonitoredCoins();
             break;
+            
         case 'active-coin-chart.html':
             loadActiveCoinChart();
             break;
     }
 }
-
 function updateActiveTrade(activeTrade, element) {
     const activeTradeHtml = (!activeTrade || activeTrade.error)
         ? '<div class="no-trade-card"><h2>No Active Trade</h2></div>'
