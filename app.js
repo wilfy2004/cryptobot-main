@@ -249,17 +249,26 @@ async function updateDashboard() {
         };
 
         // Handle individual section updates separately to prevent total failure
-        if (elements.botControl) {
-            elements.botControl.innerHTML = `
-                <div class="bot-control-card">
-                    <h2>Bot Control</h2>
-                    <div class="control-buttons">
-                        <button onclick="pauseBot()" class="action-button pause-bot">Pause Bot</button>
-                        <button onclick="resumeBot()" class="action-button resume-bot">Resume Bot</button>
-                    </div>
-                </div>
-            `;
-        }
+// Update bot control section
+if (elements.botControl) {
+    const currentState = botStatus?.currentState || 'active';
+    elements.botControl.innerHTML = `
+        <div class="bot-control-card">
+            <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
+                <span class="status-indicator ${currentState === 'active' ? 'active' : 'paused'}">
+                    ${currentState === 'active' ? '🟢' : '🔴'}
+                </span>
+                <span class="status-text">
+                    BOT STATUS: ${currentState.toUpperCase()}
+                </span>
+            </div>
+            <button onclick="toggleBot(${currentState === 'active'})" 
+                    class="action-button ${currentState === 'active' ? 'pause-bot' : 'resume-bot'}">
+                ${currentState === 'active' ? 'PAUSE BOT' : 'RESUME BOT'}
+            </button>
+        </div>
+    `;
+}
 
         // Update performance metrics
         if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
