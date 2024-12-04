@@ -552,28 +552,37 @@ function initializeApp() {
 
     switch (currentPage) {
         case 'index.html':
-            // Initial load
+            // Initial dashboard load
             updateDashboard().catch(console.error);
             
-            // Set up regular updates with error handling
+            // Set up regular dashboard updates
             dashboardInterval = setInterval(() => {
                 updateDashboard().catch(console.error);
             }, 10000);
 
-            // Handle active trade updates separately
-            setInterval(() => {
-                const element = document.getElementById('active-trade');
-                if (element) {
-                    fetchData('/api/active-trade')
-                        .then(activeTrade => {
-                            updateActiveTrade(activeTrade, element);
-                        })
-                        .catch(error => {
-                            console.error('Error updating active trade:', error);
-                            // Don't update the element on error to preserve last known good state
-                        });
-                }
-            }, 2000);
+            // Set up active trade updates only if there is an active trade
+            fetchData('/api/active-trade')
+                .then(activeTrade => {
+                    if (activeTrade && !activeTrade.error) {
+                        setInterval(() => {
+                            const element = document.getElementById('active-trade');
+                            if (element) {
+                                fetchData('/api/active-trade')
+                                    .then(newActiveTrade => {
+                                        if (newActiveTrade && !newActiveTrade.error) {
+                                            updateActiveTrade(newActiveTrade, element);
+                                        } else {
+                                            element.innerHTML = '<div class="no-trade-card"><h2>No Active Trade</h2></div>';
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error updating active trade:', error);
+                                    });
+                            }
+                        }, 2000);
+                    }
+                })
+                .catch(console.error);
             break;
 
         case 'recent-trades.html':
