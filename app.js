@@ -229,6 +229,12 @@ async function executeManualSell() {
 // Main dashboard update function
 async function updateDashboard() {
     try {
+        const [accountInfo, performanceMetrics, botStatus] = await Promise.all([
+            fetchData('/api/account-info').catch(e => ({ error: e })),
+            fetchData('/api/performance-metrics').catch(e => ({ error: e })),
+            fetchData('/api/bot-control').catch(e => ({ error: e }))
+        ]);
+
         // Get elements
         const elements = {
             accountInfo: document.getElementById('account-info'),
@@ -236,11 +242,9 @@ async function updateDashboard() {
             botControl: document.getElementById('bot-control')
         };
 
-        // Fetch bot status first and immediately display it
+        // Update bot control section
         if (elements.botControl) {
-            const botStatus = await fetchData('/api/bot-control');
             const currentState = botStatus?.currentState || 'active';
-            console.log('Bot status:', currentState); // Debug log
             elements.botControl.innerHTML = `
                 <div class="bot-control-card">
                     <div class="status-display ${currentState === 'active' ? 'active' : 'paused'}">
@@ -259,17 +263,8 @@ async function updateDashboard() {
             `;
         }
 
-        // Then fetch other data
-        const accountInfo = await fetchData('/api/account-info');
-        if (elements.accountInfo && accountInfo && accountInfo.balance !== undefined) {
-            elements.accountInfo.innerHTML = `
-                <h2>Account Info</h2>
-                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
-            `;
-        }
-
-        const performanceMetrics = await fetchData('/api/performance-metrics');
-        if (elements.performanceMetrics && performanceMetrics) {
+        // Update performance metrics
+        if (elements.performanceMetrics && performanceMetrics && !performanceMetrics.error) {
             elements.performanceMetrics.innerHTML = `
                 <h2>Performance Metrics</h2>
                 <p>Total Trades: ${performanceMetrics.totalTrades || 0}</p>
@@ -283,11 +278,22 @@ async function updateDashboard() {
             `;
         }
 
+        // Update account info
+        if (elements.accountInfo && accountInfo && !accountInfo.error && accountInfo.balance !== undefined) {
+            elements.accountInfo.innerHTML = `
+                <h2>Account Info</h2>
+                <p>Balance: $${parseFloat(accountInfo.balance).toFixed(2)}</p>
+            `;
+        }
+
     } catch (error) {
         console.error('Dashboard update error:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = `Failed to update dashboard: ${error.message}`;
+        document.body.insertBefore(errorDiv, document.body.firstChild);
     }
 }
-
 
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
