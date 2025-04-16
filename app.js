@@ -344,6 +344,8 @@ async function loadRecentTrades() {
                             <th>Quantity</th>
                             <th>Profit</th>
                             <th>Profit %</th>
+                            <th>Buy Total</th>
+                            <th>Sell Total %</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -356,6 +358,8 @@ async function loadRecentTrades() {
                                 <td>${trade.quantity}</td>
                                 <td>${trade.profit === 'N/A' ? trade.profit : '$' + trade.profit}</td>
                                 <td>${trade.profitPercentage}</td>
+                                <td>${trade.buyTotal}</td>
+                                <td>${trade.sellTotal}</td>
                             </tr>
                         `).join('')}
                     </tbody>
