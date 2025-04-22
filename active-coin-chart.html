@@ -6,20 +6,76 @@
     <title>Active Coin Chart - Trading Bot Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        /* Mobile optimizations */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+        }
+        
+        h1 {
+            margin: 10px 0;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        #tradingview_widget {
+            flex: 1;
+            width: 100%;
+            min-height: 75vh; /* Use most of the screen height */
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+        }
+        
+        button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            flex: 1;
+        }
+        
+        #back-button {
+            background-color: #2196F3;
+        }
+        
+        #logout-button {
+            background-color: #f44336;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
         <h1>Active Coin Chart</h1>
         <div id="tradingview_widget"></div>
-        <button id="back-button" onclick="window.location.href='index.html'">Back to Dashboard</button>
-        <button id="logout-button">Logout</button>
+        <div class="button-container">
+            <button id="back-button" onclick="window.location.href='index.html'">Back</button>
+            <button id="logout-button">Logout</button>
+        </div>
     </div>
     
     <script>
         // Get the active coin from localStorage or use a default
         const activeCoin = localStorage.getItem('activeCoin') || 'BTCUSDT';
         
-        // Initialize TradingView widget with 5-minute candles
+        // Initialize TradingView widget with 5-minute candles and mobile optimizations
         document.addEventListener('DOMContentLoaded', function() {
             new TradingView.widget({
                 "autosize": true,
@@ -32,21 +88,45 @@
                 "toolbar_bg": "#f1f3f6",
                 "enable_publishing": false,
                 "withdateranges": true,
-                "hide_side_toolbar": false,
+                "hide_side_toolbar": true, // Hide side toolbar on mobile
+                "hide_volume": false,
                 "container_id": "tradingview_widget",
-                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"]
+                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
+                "disabled_features": [
+                    "header_symbol_search",
+                    "header_compare",
+                    "header_undo_redo",
+                    "header_screenshot",
+                    "header_saveload",
+                    "left_toolbar",
+                    "volume_force_overlay"
+                ],
+                "enabled_features": [
+                    "move_logo_to_main_pane",
+                    "hide_last_na_study_output"
+                ],
+                "overrides": {
+                    "mainSeriesProperties.candleStyle.upColor": "#26a69a",
+                    "mainSeriesProperties.candleStyle.downColor": "#ef5350",
+                    "mainSeriesProperties.candleStyle.wickUpColor": "#26a69a",
+                    "mainSeriesProperties.candleStyle.wickDownColor": "#ef5350",
+                    "mainSeriesProperties.candleStyle.drawBorder": false,
+                    "paneProperties.background": "#ffffff",
+                    "paneProperties.vertGridProperties.color": "#f5f5f5",
+                    "paneProperties.horzGridProperties.color": "#f5f5f5",
+                    "scalesProperties.textColor": "#333333",
+                    "scalesProperties.fontSize": 12 // Larger font for better readability
+                }
             });
             
             // Set up logout button
             document.getElementById('logout-button').addEventListener('click', function() {
                 // Handle logout logic here
-                // localStorage.removeItem('authToken'); // Example
                 window.location.href = 'login.html';
             });
         });
     </script>
     
-    <!-- Keep the original script reference if it contains other functionality -->
     <script src="app.js"></script>
 </body>
 </html>
