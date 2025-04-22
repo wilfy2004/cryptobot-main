@@ -273,7 +273,8 @@ async function updateDashboard() {
             accountInfo: document.getElementById('account-info'),
             performanceMetrics: document.getElementById('performance-metrics'),
             botControl: document.getElementById('bot-control'),
-            activeTrade: document.getElementById('active-trade')
+            activeTrade: document.getElementById('active-trade'),
+            coinReset: document.getElementById('coin-reset')
         };
 
         // Update bot control section
@@ -328,6 +329,22 @@ async function updateDashboard() {
                 elements.activeTrade.innerHTML = '';  // Clear the section if no active trade
             }
         }
+        
+        // Update coin reset section - always display regardless of active trade
+        if (elements.coinReset) {
+            elements.coinReset.innerHTML = `
+                <div class="coin-reset-card">
+                    <h2>Reset Coin Monitoring</h2>
+                    <p>Use this to prevent the bot from trading a specific coin.</p>
+                    <div class="input-group">
+                        <input type="text" id="reset-coin-symbol" placeholder="Enter coin symbol (e.g., BTC)" />
+                        <button onclick="handleResetFromInput()" class="action-button reset-monitoring">
+                            Reset Monitoring
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
 
     } catch (error) {
         console.error('Dashboard update error:', error);
@@ -336,6 +353,22 @@ async function updateDashboard() {
         errorDiv.textContent = `Failed to update dashboard: ${error.message}`;
         document.body.insertBefore(errorDiv, document.body.firstChild);
     }
+}
+
+// Handler for the coin reset input field
+function handleResetFromInput() {
+    const symbolInput = document.getElementById('reset-coin-symbol');
+    if (!symbolInput || !symbolInput.value.trim()) {
+        alert('Please enter a valid coin symbol');
+        return;
+    }
+    
+    const symbol = symbolInput.value.trim().toUpperCase();
+    resetCoinMonitoring(symbol).then(success => {
+        if (success) {
+            symbolInput.value = ''; // Clear the input on success
+        }
+    });
 }
 function formatMinutes(minutes) {
     return minutes ? minutes.toFixed(1) : '0';
