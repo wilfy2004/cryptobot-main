@@ -14,6 +14,39 @@
         <button id="back-button" onclick="window.location.href='index.html'">Back to Dashboard</button>
         <button id="logout-button">Logout</button>
     </div>
+    
+    <script>
+        // Get the active coin from localStorage or use a default
+        const activeCoin = localStorage.getItem('activeCoin') || 'BTCUSDT';
+        
+        // Initialize TradingView widget with 5-minute candles
+        document.addEventListener('DOMContentLoaded', function() {
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": "BINANCE:" + activeCoin,
+                "interval": "5", // 5-minute candles
+                "timezone": "Etc/UTC",
+                "theme": "light",
+                "style": "1", // Candlestick chart
+                "locale": "en",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "withdateranges": true,
+                "hide_side_toolbar": false,
+                "container_id": "tradingview_widget",
+                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"]
+            });
+            
+            // Set up logout button
+            document.getElementById('logout-button').addEventListener('click', function() {
+                // Handle logout logic here
+                // localStorage.removeItem('authToken'); // Example
+                window.location.href = 'login.html';
+            });
+        });
+    </script>
+    
+    <!-- Keep the original script reference if it contains other functionality -->
     <script src="app.js"></script>
 </body>
 </html>
