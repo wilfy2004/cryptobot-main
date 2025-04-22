@@ -682,11 +682,6 @@ function initializeApp() {
     }
 }
 function updateActiveTrade(activeTrade, element) {
-    // Extract base symbol for reset functionality
-    const baseSymbol = activeTrade && activeTrade.symbol ? 
-        (activeTrade.symbol.endsWith('USDT') ? activeTrade.symbol.slice(0, -4) : activeTrade.symbol)
-        : '';
-    
     const activeTradeHtml = (!activeTrade || activeTrade.error)
         ? '<div class="no-trade-card"><h2>No Active Trade</h2></div>'
         : `
@@ -725,9 +720,6 @@ function updateActiveTrade(activeTrade, element) {
                             Disable Trailing Stop
                          </button>`
                     }
-                    <button onclick="resetCoinMonitoring('${baseSymbol}')" class="action-button reset-monitoring">
-                        Reset Monitoring
-                    </button>
                 </div>
                 <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
             </div>
