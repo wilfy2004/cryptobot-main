@@ -23,22 +23,45 @@
             width: 100%;
         }
         
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+        }
+        
         h1 {
-            margin: 10px 0;
+            margin: 0;
             text-align: center;
             font-size: 18px;
+            flex: 1;
         }
         
         #tradingview_widget {
             flex: 1;
             width: 100%;
-            min-height: 75vh; /* Use most of the screen height */
+            min-height: 70vh; /* Use most of the screen height */
+        }
+        
+        .nav-button {
+            padding: 8px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
         }
         
         .button-container {
             display: flex;
             justify-content: space-between;
             padding: 10px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
         }
         
         button {
@@ -59,27 +82,57 @@
         #logout-button {
             background-color: #f44336;
         }
+        
+        .coin-info {
+            text-align: center;
+            padding: 5px;
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div id="app">
-        <h1>Active Coin Chart</h1>
+        <div class="header">
+            <a href="index.html" class="nav-button">← Back</a>
+            <h1>Active Coin Chart</h1>
+            <a href="settings.html" class="nav-button" style="visibility: hidden;">Settings</a>
+        </div>
+        
+        <div id="active-coin" class="coin-info">Loading active coin...</div>
+        
         <div id="tradingview_widget"></div>
+        
         <div class="button-container">
-            <button id="back-button" onclick="window.location.href='index.html'">Back</button>
+            <button id="home-button" onclick="window.location.href='index.html'">Home</button>
+            <button id="dashboard-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
             <button id="logout-button">Logout</button>
         </div>
     </div>
     
     <script>
-        // Get the active coin from localStorage or use a default
-        const activeCoin = localStorage.getItem('activeCoin') || 'BTCUSDT';
+        // Function to get URL parameters
+        function getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
         
-        // Initialize TradingView widget with 5-minute candles and mobile optimizations
-        document.addEventListener('DOMContentLoaded', function() {
+        // Function to initialize the chart
+        function initChart(symbol) {
+            // Format symbol if needed
+            if (!symbol.endsWith("USDT") && !symbol.endsWith("USD") && 
+                !symbol.endsWith("BUSD") && !symbol.endsWith("USDC")) {
+                symbol = symbol + "USDT";
+            }
+            
+            // Update the coin info display
+            document.getElementById('active-coin').textContent = "Active Coin: " + symbol;
+            
+            // Initialize the TradingView widget
             new TradingView.widget({
                 "autosize": true,
-                "symbol": "BINANCE:" + activeCoin,
+                "symbol": "BINANCE:" + symbol,
                 "interval": "5", // 5-minute candles
                 "timezone": "Etc/UTC",
                 "theme": "light",
@@ -118,10 +171,24 @@
                     "scalesProperties.fontSize": 12 // Larger font for better readability
                 }
             });
+        }
+        
+        // Set up the chart when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try to get symbol from multiple sources (in order of priority)
+            let symbol = getUrlParam('symbol') || // URL parameter
+                        localStorage.getItem('activeCoin') || // Local storage
+                        sessionStorage.getItem('activeCoin') || // Session storage
+                        window.activeCoin || // Global variable
+                        'BTCUSDT'; // Default fallback
+            
+            // Initialize the chart with the found symbol
+            initChart(symbol);
             
             // Set up logout button
             document.getElementById('logout-button').addEventListener('click', function() {
                 // Handle logout logic here
+                localStorage.removeItem('authToken'); // Example
                 window.location.href = 'login.html';
             });
         });
