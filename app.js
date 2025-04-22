@@ -140,6 +140,44 @@ async function updateTradeTiming(minutes) {
     }
 }
 
+// New function to reset coin monitoring
+async function resetCoinMonitoring(symbol) {
+    if (!confirm(`Are you sure you want to reset monitoring for ${symbol}? This will prevent the bot from trading this coin.`)) {
+        return false;
+    }
+    
+    try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/reset-coin-monitoring`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                symbol: symbol
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to reset coin monitoring');
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Monitoring reset for ${symbol} successful.`);
+            return true;
+        } else {
+            throw new Error(result.message || 'Unknown error occurred');
+        }
+    } catch (error) {
+        console.error('Error resetting coin monitoring:', error);
+        alert(`Failed to reset coin monitoring: ${error.message}`);
+        return false;
+    }
+}
+
 function resetLogoutTimer() {
     if (logoutTimer) {
         clearTimeout(logoutTimer);
@@ -401,6 +439,7 @@ async function loadMonitoredCoins() {
                         <th>State</th>
                         <th>First Dip</th>
                         <th>Last Dip</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -411,6 +450,11 @@ async function loadMonitoredCoins() {
                             <td>${coin.state}</td>
                             <td>${coin.timing?.firstDip?.time ? `${coin.timing.firstDip.time} (${coin.timing.firstDip.ago})` : '-'}</td>
                             <td>${coin.timing?.lastDip?.time ? `${coin.timing.lastDip.time} (${coin.timing.lastDip.ago})` : '-'}</td>
+                            <td>
+                                <button class="small-button" onclick="handleResetCoinMonitoring('${coin.symbol}')">
+                                    Reset
+                                </button>
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -421,6 +465,14 @@ async function loadMonitoredCoins() {
         console.error('Error loading monitored coins:', error);
         document.getElementById('content').innerHTML = '<p>Error loading monitored coins. Please try again.</p>';
     }
+}
+
+// Handler for reset coin monitoring from monitored coins page
+async function handleResetCoinMonitoring(symbol) {
+    const baseSymbol = symbol.endsWith('USDT') ? symbol.slice(0, -4) : symbol;
+    await resetCoinMonitoring(baseSymbol);
+    // Refresh the monitored coins list after reset
+    await loadMonitoredCoins();
 }
 
 async function showHardResetConfirmation() {
@@ -597,6 +649,11 @@ function initializeApp() {
     }
 }
 function updateActiveTrade(activeTrade, element) {
+    // Extract base symbol for reset functionality
+    const baseSymbol = activeTrade && activeTrade.symbol ? 
+        (activeTrade.symbol.endsWith('USDT') ? activeTrade.symbol.slice(0, -4) : activeTrade.symbol)
+        : '';
+    
     const activeTradeHtml = (!activeTrade || activeTrade.error)
         ? '<div class="no-trade-card"><h2>No Active Trade</h2></div>'
         : `
@@ -635,6 +692,9 @@ function updateActiveTrade(activeTrade, element) {
                             Disable Trailing Stop
                          </button>`
                     }
+                    <button onclick="resetCoinMonitoring('${baseSymbol}')" class="action-button reset-monitoring">
+                        Reset Monitoring
+                    </button>
                 </div>
                 <p class="timer">Duration: ${formatDuration(activeTrade.currentDuration)}</p>
             </div>
@@ -645,3 +705,31 @@ function updateActiveTrade(activeTrade, element) {
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// Add CSS for the new buttons
+document.head.insertAdjacentHTML('beforeend', `
+<style>
+    .small-button {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+    
+    .small-button:hover {
+        background-color: #d32f2f;
+    }
+    
+    .reset-monitoring {
+        background-color: #ff9800;
+        margin-top: 5px;
+    }
+    
+    .reset-monitoring:hover {
+        background-color: #f57c00;
+    }
+</style>
+`);
