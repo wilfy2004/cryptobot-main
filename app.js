@@ -510,9 +510,9 @@ async function handleResetCoinMonitoring(symbol) {
         console.log('Normalized to base symbol:', baseSymbol);
         
         const token = localStorage.getItem('auth_token');
+        const requestBody = JSON.stringify({ symbol: baseSymbol });
         
-        // Log the exact request being sent
-        console.log('Reset API request payload:', { symbol: baseSymbol });
+        console.log('Sending request body:', requestBody);
         
         const response = await fetch(`${API_URL}/api/reset-coin-monitoring`, {
             method: 'POST',
@@ -520,23 +520,10 @@ async function handleResetCoinMonitoring(symbol) {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                symbol: baseSymbol
-            })
+            body: requestBody
         });
         
-        // Log the raw response for debugging
         console.log('Reset API response status:', response.status);
-        console.log('Reset API response headers:', [...response.headers.entries()]);
-        
-        // Check if the response can be parsed as JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            console.warn('Non-JSON response received:', contentType);
-            const textResponse = await response.text();
-            console.log('Raw response text:', textResponse);
-            throw new Error('Invalid response format from server');
-        }
         
         const responseData = await response.json();
         console.log('Reset API response data:', responseData);
@@ -547,14 +534,11 @@ async function handleResetCoinMonitoring(symbol) {
             await loadMonitoredCoins();
             return true;
         } else {
-            throw new Error(responseData.message || 'Server returned error without details');
+            throw new Error(responseData.message || responseData.error || 'Server returned error without details');
         }
     } catch (error) {
         console.error('Error in handleResetCoinMonitoring:', error);
-        
-        // Provide a more detailed error message for debugging
-        const errorMessage = `Failed to reset coin monitoring: ${error.message}\nCheck browser console for details.`;
-        alert(errorMessage);
+        alert(`Failed to reset coin monitoring: ${error.message}`);
         return false;
     }
 }
