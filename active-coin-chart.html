@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Active Coin Chart - Trading Bot Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <title>Chart View Only</title>
     <style>
-        /* Mobile optimizations */
         body, html {
             margin: 0;
             padding: 0;
@@ -42,7 +39,7 @@
         #tradingview_widget {
             flex: 1;
             width: 100%;
-            min-height: 75vh; /* Use most of the screen height */
+            min-height: 75vh;
         }
         
         .nav-button {
@@ -64,39 +61,46 @@
             font-weight: bold;
         }
     </style>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
     <div id="app">
         <div class="header">
             <a href="index.html" class="nav-button">← Back</a>
-            <h1>Active Coin Chart</h1>
-            <div style="width: 70px;"></div> <!-- Spacer for balance -->
+            <h1>Chart View</h1>
+            <div style="width: 70px;"></div>
         </div>
         
-        <div id="active-coin" class="coin-info">Loading active coin...</div>
+        <div id="active-coin" class="coin-info">Loading chart...</div>
         
         <div id="tradingview_widget"></div>
     </div>
     
     <script>
-        // Function to get URL parameters
-        function getUrlParam(name) {
+        // ISOLATED: Only use URL parameters, no storage access at all
+        function getSymbolFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-        
-        // Function to initialize the chart
-        function initChart(symbol) {
+            let symbol = urlParams.get('symbol');
+            
+            // If no symbol in URL, use a visual placeholder that doesn't affect trading
+            if (!symbol) {
+                symbol = "BTCUSDT";
+            }
+            
             // Format symbol if needed
             if (!symbol.endsWith("USDT") && !symbol.endsWith("USD") && 
                 !symbol.endsWith("BUSD") && !symbol.endsWith("USDC")) {
                 symbol = symbol + "USDT";
             }
             
-            // Update the coin info display
-            document.getElementById('active-coin').textContent = "Active Coin: " + symbol;
+            return symbol;
+        }
+        
+        // Initialize chart using ONLY the URL parameter
+        function initChart() {
+            const symbol = getSymbolFromUrl();
+            document.getElementById('active-coin').textContent = "Viewing: " + symbol;
             
-            // Initialize the TradingView widget
             new TradingView.widget({
                 "autosize": true,
                 "symbol": "BINANCE:" + symbol,
@@ -108,7 +112,7 @@
                 "toolbar_bg": "#f1f3f6",
                 "enable_publishing": false,
                 "withdateranges": true,
-                "hide_side_toolbar": true, // Hide side toolbar on mobile
+                "hide_side_toolbar": true,
                 "hide_volume": false,
                 "container_id": "tradingview_widget",
                 "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
@@ -135,34 +139,13 @@
                     "paneProperties.vertGridProperties.color": "#f5f5f5",
                     "paneProperties.horzGridProperties.color": "#f5f5f5",
                     "scalesProperties.textColor": "#333333",
-                    "scalesProperties.fontSize": 12 // Larger font for better readability
+                    "scalesProperties.fontSize": 12
                 }
             });
         }
         
-        // Set up the chart when the DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Try to get symbol from multiple sources (in order of priority) but NEVER set it back
-            let symbol = getUrlParam('symbol') || // URL parameter
-                        localStorage.getItem('viewCoin') || // View-only storage
-                        sessionStorage.getItem('viewCoin'); // View-only session storage
-            
-            // Only check activeTradeSymbol if we have no other source
-            if (!symbol) {
-                // READ ONLY - do not write back to these values
-                symbol = localStorage.getItem('activeCoin') || // Local storage (read only)
-                         sessionStorage.getItem('activeCoin') || // Session storage (read only)
-                         'BTCUSDT'; // Default fallback that doesn't affect trading
-                
-                // Store in viewCoin so we don't need to touch activeCoin again
-                localStorage.setItem('viewCoin', symbol);
-            }
-            
-            // Initialize the chart with the found symbol
-            initChart(symbol);
-        });
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initChart);
     </script>
-    
-    <script src="app.js"></script>
 </body>
 </html>
