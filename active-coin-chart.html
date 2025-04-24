@@ -42,7 +42,7 @@
         #tradingview_widget {
             flex: 1;
             width: 100%;
-            min-height: 70vh; /* Use most of the screen height */
+            min-height: 75vh; /* Use most of the screen height */
         }
         
         .nav-button {
@@ -54,33 +54,6 @@
             color: white;
             text-decoration: none;
             display: inline-block;
-        }
-        
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-top: 1px solid #ddd;
-        }
-        
-        button {
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
-            flex: 1;
-        }
-        
-        #back-button {
-            background-color: #2196F3;
-        }
-        
-        #logout-button {
-            background-color: #f44336;
         }
         
         .coin-info {
@@ -97,18 +70,12 @@
         <div class="header">
             <a href="index.html" class="nav-button">← Back</a>
             <h1>Active Coin Chart</h1>
-            <a href="settings.html" class="nav-button" style="visibility: hidden;">Settings</a>
+            <div style="width: 70px;"></div> <!-- Spacer for balance -->
         </div>
         
         <div id="active-coin" class="coin-info">Loading active coin...</div>
         
         <div id="tradingview_widget"></div>
-        
-        <div class="button-container">
-            <button id="home-button" onclick="window.location.href='index.html'">Home</button>
-            <button id="dashboard-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
-            <button id="logout-button">Logout</button>
-        </div>
     </div>
     
     <script>
@@ -184,13 +151,6 @@
             
             // Initialize the chart with the found symbol
             initChart(symbol);
-            
-            // Set up logout button
-            document.getElementById('logout-button').addEventListener('click', function() {
-                // Handle logout logic here
-                localStorage.removeItem('authToken'); // Example
-                window.location.href = 'login.html';
-            });
         });
     </script>
     
