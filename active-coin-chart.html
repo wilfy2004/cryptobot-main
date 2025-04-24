@@ -142,12 +142,21 @@
         
         // Set up the chart when the DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Try to get symbol from multiple sources (in order of priority)
+            // Try to get symbol from multiple sources (in order of priority) but NEVER set it back
             let symbol = getUrlParam('symbol') || // URL parameter
-                        localStorage.getItem('activeCoin') || // Local storage
-                        sessionStorage.getItem('activeCoin') || // Session storage
-                        window.activeCoin || // Global variable
-                        'BTCUSDT'; // Default fallback
+                        localStorage.getItem('viewCoin') || // View-only storage
+                        sessionStorage.getItem('viewCoin'); // View-only session storage
+            
+            // Only check activeTradeSymbol if we have no other source
+            if (!symbol) {
+                // READ ONLY - do not write back to these values
+                symbol = localStorage.getItem('activeCoin') || // Local storage (read only)
+                         sessionStorage.getItem('activeCoin') || // Session storage (read only)
+                         'BTCUSDT'; // Default fallback that doesn't affect trading
+                
+                // Store in viewCoin so we don't need to touch activeCoin again
+                localStorage.setItem('viewCoin', symbol);
+            }
             
             // Initialize the chart with the found symbol
             initChart(symbol);
