@@ -502,10 +502,44 @@ async function loadMonitoredCoins() {
 
 // Handler for reset coin monitoring from monitored coins page
 async function handleResetCoinMonitoring(symbol) {
-    const baseSymbol = symbol.endsWith('USDT') ? symbol.slice(0, -4) : symbol;
-    await resetCoinMonitoring(baseSymbol);
-    // Refresh the monitored coins list after reset
-    await loadMonitoredCoins();
+    try {
+        console.log('Resetting monitoring for:', symbol);
+        
+        // Always normalize to base symbol without USDT suffix
+        const baseSymbol = symbol.endsWith('USDT') ? symbol.slice(0, -4) : symbol;
+        console.log('Normalized to base symbol:', baseSymbol);
+        
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_URL}/api/reset-coin-monitoring`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                symbol: baseSymbol
+            })
+        });
+        
+        // Log the raw response for debugging
+        console.log('Reset API response status:', response.status);
+        
+        const responseData = await response.json();
+        console.log('Reset API response data:', responseData);
+        
+        if (responseData.success) {
+            alert(`Successfully reset monitoring for ${baseSymbol}`);
+            // Refresh the list
+            await loadMonitoredCoins();
+            return true;
+        } else {
+            throw new Error(responseData.message || 'Unknown error occurred');
+        }
+    } catch (error) {
+        console.error('Error in handleResetCoinMonitoring:', error);
+        alert(`Failed to reset coin monitoring: ${error.message}`);
+        return false;
+    }
 }
 
 async function showHardResetConfirmation() {
