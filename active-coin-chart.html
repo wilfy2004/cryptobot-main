@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -78,82 +78,70 @@
         <div id="tradingview_widget"></div>
     </div>
     
+    <script src="app.js"></script>
     <script>
-        // Function to get URL parameters
-        function getUrlParam(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-        
-        // Function to initialize the chart
-        function initChart(symbol) {
-            // Format symbol if needed
-            if (!symbol.endsWith("USDT") && !symbol.endsWith("USD") && 
-                !symbol.endsWith("BUSD") && !symbol.endsWith("USDC")) {
-                symbol = symbol + "USDT";
-            }
-            
-            // Update the coin info display
-            document.getElementById('active-coin').textContent = "Active Coin: " + symbol;
-            
-            // Initialize the TradingView widget
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": "BINANCE:" + symbol,
-                "interval": "5", // 5-minute candles
-                "timezone": "Etc/UTC",
-                "theme": "light",
-                "style": "1", // Candlestick chart
-                "locale": "en",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "withdateranges": true,
-                "hide_side_toolbar": true, // Hide side toolbar on mobile
-                "hide_volume": false,
-                "container_id": "tradingview_widget",
-                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
-                "disabled_features": [
-                    "header_symbol_search",
-                    "header_compare",
-                    "header_undo_redo",
-                    "header_screenshot",
-                    "header_saveload",
-                    "left_toolbar",
-                    "volume_force_overlay"
-                ],
-                "enabled_features": [
-                    "move_logo_to_main_pane",
-                    "hide_last_na_study_output"
-                ],
-                "overrides": {
-                    "mainSeriesProperties.candleStyle.upColor": "#26a69a",
-                    "mainSeriesProperties.candleStyle.downColor": "#ef5350",
-                    "mainSeriesProperties.candleStyle.wickUpColor": "#26a69a",
-                    "mainSeriesProperties.candleStyle.wickDownColor": "#ef5350",
-                    "mainSeriesProperties.candleStyle.drawBorder": false,
-                    "paneProperties.background": "#ffffff",
-                    "paneProperties.vertGridProperties.color": "#f5f5f5",
-                    "paneProperties.horzGridProperties.color": "#f5f5f5",
-                    "scalesProperties.textColor": "#333333",
-                    "scalesProperties.fontSize": 12 // Larger font for better readability
-                }
-            });
-        }
-        
-        // Set up the chart when the DOM is loaded
+        // This script runs after app.js is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Try to get symbol from multiple sources (in order of priority)
-            let symbol = getUrlParam('symbol') || // URL parameter
-                        localStorage.getItem('activeCoin') || // Local storage
-                        sessionStorage.getItem('activeCoin') || // Session storage
-                        window.activeCoin || // Global variable
-                        'BTCUSDT'; // Default fallback
-            
-            // Initialize the chart with the found symbol
-            initChart(symbol);
+            // Use the existing fetchData function from app.js to get the active trade
+            fetchData('/api/active-trade')
+                .then(activeTrade => {
+                    if (activeTrade && activeTrade.symbol) {
+                        const symbol = activeTrade.symbol;
+                        document.getElementById('active-coin').textContent = "Active Coin: " + symbol;
+                        
+                        // Initialize the TradingView widget
+                        new TradingView.widget({
+                            "autosize": true,
+                            "symbol": "BINANCE:" + symbol,
+                            "interval": "5", // 5-minute candles
+                            "timezone": "Etc/UTC",
+                            "theme": "light",
+                            "style": "1", // Candlestick chart
+                            "locale": "en",
+                            "toolbar_bg": "#f1f3f6",
+                            "enable_publishing": false,
+                            "withdateranges": true,
+                            "hide_side_toolbar": true, // Hide side toolbar on mobile
+                            "hide_volume": false,
+                            "container_id": "tradingview_widget",
+                            "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
+                            "disabled_features": [
+                                "header_symbol_search",
+                                "header_compare",
+                                "header_undo_redo",
+                                "header_screenshot",
+                                "header_saveload",
+                                "left_toolbar",
+                                "volume_force_overlay"
+                            ],
+                            "enabled_features": [
+                                "move_logo_to_main_pane",
+                                "hide_last_na_study_output"
+                            ],
+                            "overrides": {
+                                "mainSeriesProperties.candleStyle.upColor": "#26a69a",
+                                "mainSeriesProperties.candleStyle.downColor": "#ef5350",
+                                "mainSeriesProperties.candleStyle.wickUpColor": "#26a69a",
+                                "mainSeriesProperties.candleStyle.wickDownColor": "#ef5350",
+                                "mainSeriesProperties.candleStyle.drawBorder": false,
+                                "paneProperties.background": "#ffffff",
+                                "paneProperties.vertGridProperties.color": "#f5f5f5",
+                                "paneProperties.horzGridProperties.color": "#f5f5f5",
+                                "scalesProperties.textColor": "#333333",
+                                "scalesProperties.fontSize": 12 // Larger font for better readability
+                            }
+                        });
+                    } else {
+                        document.getElementById('active-coin').textContent = "No active trade";
+                        document.getElementById('tradingview_widget').innerHTML = '<div style="display:flex; height:100%; align-items:center; justify-content:center;"><h3>No active trade at the moment</h3></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching active trade:', error);
+                    document.getElementById('active-coin').textContent = "Error loading data";
+                    document.getElementById('tradingview_widget').innerHTML = '<div style="display:flex; height:100%; align-items:center; justify-content:center;"><h3>Error loading chart data</h3></div>';
+                });
         });
     </script>
-    
-    <script src="app.js"></script>
 </body>
 </html>
